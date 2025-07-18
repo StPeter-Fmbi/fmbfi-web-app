@@ -1,0 +1,20 @@
+export type SheetData = {
+  email: string;
+  password: string;
+  role: string;
+  studentId: string;
+  batch: string;
+  sy: string;
+  year: string;
+  category: string;
+  status: string;
+  lastName: string;
+  firstName: string;
+  middleName: string;
+  school: string;
+  course: string;
+  duration: string;
+  mobileNumber: string;
+  facebook: string;
+  address: string;
+};
