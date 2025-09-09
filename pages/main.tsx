@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
-import Head from "next/head";
-import { FaArrowUp } from "react-icons/fa";
-import Footer from "@/components/Footer";
-import Navbar from "@/components/NavBar";
-import HeroSection from "@/components/HeroSection2";
+import AboutUs from "@/components/AboutUs";
 import DemographicsSection from "@/components/DemographicsSection2";
 import FeaturesSection from "@/components/FeaturesSection";
-import NewsSection from "@/components/NewsSection";
-import AboutUs from "@/components/AboutUs";
-import AnnouncementModal from "@/components/Announcement"; // Import AnnouncementModal
+import Footer from "@/components/Footer";
+import HeroSection from "@/components/HeroSection2";
+import Navbar from "@/components/NavBar";
 import NewsSection2 from "@/components/NewsSection2";
+import Head from "next/head";
+import { useEffect, useState } from "react";
+import { FaArrowUp } from "react-icons/fa";
 
 const Home = () => {
   const [showScroll, setShowScroll] = useState(false);
@@ -42,8 +40,8 @@ const Home = () => {
     <main className="bg-gray-100 min-h-screen font-title">
       <div className="w-full">
         <Head>
-          <title>Landing Page</title>
-          <meta name="description" content="A simple landing page" />
+          <title>FMBFI | Home Page</title>
+          <meta name="description" content="FRANCISCO M. BAUTISTA FOUNDATION" />
         </Head>
 
         {/* Navbar */}
@@ -69,7 +67,7 @@ const Home = () => {
       </div>
 
       {/* Announcement Modal */}
-      <AnnouncementModal isOpen={isModalOpen} closeModal={closeModal} />
+      {/* <AnnouncementModal isOpen={isModalOpen} closeModal={closeModal} /> */}
 
       {/* Back to Top Button */}
       {showScroll && (
