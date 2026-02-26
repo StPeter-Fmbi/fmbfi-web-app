@@ -1,0 +1,30 @@
+// pages/dashboard.tsx
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+
+export default function DashboardRedirect() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session?.user) {
+      router.push("/auth/login");
+    } else {
+      const role = session.user.role;
+      if (role === "Admin") {
+        router.push("/admin/dashboard");
+      } else if (role === "User") {
+        router.push("/user/dashboard");
+      } else if (role === "Scholar") {
+        router.push("/scholar/dashboard");
+      } else {
+        router.push("/");
+      }
+    }
+  }, [session, status]);
+
+  return <p className="text-center mt-20 text-lg">Redirecting to dashboard...</p>;
+}

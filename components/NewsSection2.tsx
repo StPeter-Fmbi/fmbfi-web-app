@@ -1,99 +1,148 @@
 import React, { useState } from "react";
-import { MdClose } from "react-icons/md"; // Importing the MdClose icon from react-icons
+import { MdClose } from "react-icons/md";
 
 const NewsSection2 = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false); // Manage modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  const announcements = [
+    // {
+    //   type: "image",
+    //   title: "FMBFI EXAMINATION 2025",
+    //   description:
+    //     "Stay informed about the FMBFI Examination scheduled for 2025.",
+    //   image: "/images/fmbfi-exam.png",
+    //   onClick: openModal,
+    // },
+    {
+      type: "video",
+      title: "FMBFI GRADUATES FEATURED",
+      description: "Watch the inspiring story of FMBFI Alumni in this video.",
+      videoUrl: "https://www.youtube.com/embed/Nfm9dajjhY4",
+    },
+    {
+      type: "facebook-video",
+      title: "ONE WITH NATURE",
+      description:
+        "Watch the tree planting outreach event on our Facebook page.",
+      embedUrl:
+        "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F303691128664664%2F&show_text=false&width=267&t=0",
+    },
+  ];
+
+  const isSingle = announcements.length === 1;
 
   return (
     <section
       id="news"
-      className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-12 relative"
+      className="min-h-screen bg-gray-50 flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-12 relative"
     >
-      {/* Semicircle Background using CSS */}
+      {/* Semicircle Background */}
       <div className="absolute top-0 left-0 w-full h-[calc(55vh)] bg-[#d12f27] rounded-b-full z-0"></div>
 
-      {/* Header with Padding */}
-      <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-body font-extrabold text-white mb-6 px-4 sm:px-8 relative z-10 text-center pt-12">
+      {/* Header */}
+      <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-body font-extrabold text-white mb-6 relative z-10 text-center">
         LATEST NEWS & UPDATES
       </h2>
-
-      {/* Subheading */}
-      <p className="text-lg sm:text-xl md:text-2xl font-body text-white mb-6 px-4 sm:px-8 relative z-10 text-center italic">
+      <p className="text-lg sm:text-xl md:text-2xl font-body text-white mb-6 relative z-10 text-center italic">
         Stay updated with the latest announcements and highlights from FMBFI.
       </p>
 
-      {/* Grid Layout for Square News Items with Padding Added Before Cards */}
-      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 px-4 sm:px-8 relative z-10 pt-8">
-        {/* News Item 1 - FMBFI EXAMINATION */}
-        <div className="flex flex-col items-center bg-[#e4542f] rounded-lg shadow-lg overflow-hidden">
+      {/* Grid Layout */}
+      <div
+        className={`w-full max-w-7xl grid gap-8 relative z-10 ${
+          isSingle
+            ? "grid-cols-1 place-items-center"
+            : "grid-cols-1 lg:grid-cols-2 justify-items-center"
+        }`}
+      >
+        {announcements.map((item, index) => (
           <div
-            className="w-full h-[280px] bg-cover bg-center cursor-pointer"
-            style={{
-              backgroundImage: 'url("/images/fmbfi-exam.png")', // Update the image URL as necessary
-            }}
-            onClick={openModal} // Open modal when clicked
-          />
-          <div className="p-4 text-center">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-body font-semibold text-white mb-2">
-              FMBFI EXAMINATION 2025
-            </h3>
-            <p className="text-sm sm:text-base md:text-lg font-body text-white">
-              Stay informed about the FMBFI Examination scheduled for 2025.
-            </p>
-          </div>
-        </div>
+            key={index}
+            className={`flex flex-col items-center bg-[#e4542f] rounded-lg shadow-lg overflow-hidden w-full ${
+              isSingle ? "max-w-3xl" : "max-w-xl"
+            }`}
+          >
+            {/* MEDIA */}
+            <div
+              className={`w-full ${
+                isSingle ? "h-[360px]" : "h-[280px]"
+              } rounded-t-lg overflow-hidden relative`}
+            >
+              {/* VIDEO */}
+              {item.type === "video" && (
+                <iframe
+                  className="w-full h-full"
+                  src={item.videoUrl}
+                  title={item.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
 
-        {/* News Item 2 - Featured Video */}
-        <div className="flex flex-col items-center bg-[#e4542f] rounded-lg shadow-lg overflow-hidden">
-          <div className="w-full h-[280px]"> {/* Match the same height as the image */}
-            <iframe
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/Nfm9dajjhY4"
-              title="KWENTONG FMBFI ALUMNI"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+              {/* FACEBOOK */}
+              {item.type === "facebook-video" && (
+                <div
+                  className="w-full h-full flex items-center justify-center text-white cursor-pointer bg-cover bg-center"
+                  style={{ backgroundImage: `url(/images/FMBFI3.JPG)` }}
+                  onClick={() =>
+                    window.open(
+                      "https://www.facebook.com/reel/303691128664664/",
+                      "_blank",
+                    )
+                  }
+                >
+                  <div className="bg-black bg-opacity-50 px-4 py-2 rounded-lg text-lg sm:text-xl md:text-2xl text-center transition transform hover:scale-105 hover:bg-opacity-70">
+                    ▶ Watch on Facebook
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* TEXT */}
+            <div className={`p-4 text-center`}>
+              <h3
+                className={`font-body font-semibold text-white mb-2 ${
+                  isSingle
+                    ? "text-xl sm:text-2xl md:text-3xl"
+                    : "text-lg sm:text-xl md:text-2xl"
+                }`}
+              >
+                {item.title}
+              </h3>
+              <p
+                className={`font-body text-white ${
+                  isSingle
+                    ? "text-base sm:text-lg md:text-xl"
+                    : "text-sm sm:text-base md:text-lg"
+                }`}
+              >
+                {item.description}
+              </p>
+            </div>
           </div>
-          <div className="p-4 text-center">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-body font-semibold text-white mb-2">
-              FMBFI GRADUATES FEATURED
-            </h3>
-            <p className="text-sm sm:text-base md:text-lg font-body text-white">
-              Watch the inspiring story of FMBFI Alumni in this video.
-            </p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Modal for Fullscreen Image */}
+      {/* Modal */}
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
-          onClick={closeModal} // Close modal if background is clicked
+          onClick={closeModal}
         >
-          <div
-            className="relative"
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the image container
-          >
+          <div onClick={(e) => e.stopPropagation()} className="relative">
             <img
-              src="/images/fmbfi-exam.png" // Update with your image source
+              src="/images/fmbfi-exam.png"
               alt="FMBFI Examination"
               className="max-w-full max-h-[90vh] object-contain"
             />
-            {/* Updated Close Button with React Icon and Increased Size */}
             <button
               onClick={closeModal}
               className="absolute top-2 right-2 text-white text-4xl bg-transparent border-0 cursor-pointer"
             >
-              <MdClose /> {/* Close icon from react-icons */}
+              <MdClose />
             </button>
           </div>
         </div>

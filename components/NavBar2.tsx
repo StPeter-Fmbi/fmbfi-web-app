@@ -1,23 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaSearch } from "react-icons/fa"; // Search Icon
 import { AiOutlineClose } from "react-icons/ai"; // Close Icon
 import { FiMenu } from "react-icons/fi"; // Hamburger Menu Icon
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSession, signIn } from "next-auth/react"; // Removed signOut import
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); // New state for login status
-  const router = useRouter();
-
-  // Check if user is logged in (this could be done via cookies, localStorage, or context)
-  useEffect(() => {
-    const user = localStorage.getItem("user"); // Example: check for user data in localStorage
-    if (user) {
-      setIsLoggedIn(true);
-    }
-  }, []);
+  const { data: session } = useSession(); // Use session from NextAuth
+  const [isLoginDisabled, setIsLoginDisabled] = useState<boolean>(false); // Disabled state for the login button
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -31,10 +23,10 @@ const Navbar = () => {
     setIsSearchModalOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user"); // Remove user data from localStorage
-    setIsLoggedIn(false);
-    router.push("/login"); // Redirect to login page
+  // Temporarily disable the login button (for example, after clicking it)
+  const handleLoginClick = () => {
+    setIsLoginDisabled(true); // Disable the button after click
+    signIn(); // Proceed with the login
   };
 
   return (
@@ -46,15 +38,15 @@ const Navbar = () => {
             alt="Logo"
             className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-full"
           />
-          <span className="text-sm sm:text-md lg:text-2xl font-heading font-extrabold">
+          <span className="text-xs sm:text-sm md:text-lg lg:text-xl xl:text-2xl font-body font-bold">
             FRANCISCO M BAUTISTA FOUNDATION INC.
           </span>
         </div>
-        {/* Navbar Links (Hidden on Small and Tablet, Visible on Large Screens) */}
+
         <div className="hidden xl:flex space-x-10 ml-auto text-lg items-center">
           <Link
             href="#about"
-            className="hover:bg-[#d12f27] hover:text-white px-3 py-2 rounded-md font-body "
+            className="hover:bg-[#d12f27] hover:text-white px-3 py-2 rounded-md font-body"
           >
             About Us
           </Link>
@@ -72,32 +64,38 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="hidden xl:flex items-center space-x-3 ml-auto">
-          {/* Apply Button */}
           <Link
-            href="#apply"
+            href="/apply"
             className="bg-[#e4542f] text-white px-6 py-2 rounded-full hover:bg-[#b43b28] text-lg font-body font-semibold"
           >
             APPLY NOW
           </Link>
-
-          {/* Conditionally render Login/Logout Button */}
-          {isLoggedIn ? (
-            <button
-              onClick={handleLogout}
-              className="bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] text-lg font-body font-semibold"
-            >
-              LOG-OUT
-            </button>
-          ) : (
+          {session ? (
             <Link
-              href="#login"
-              className="bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] text-lg font-body font-semibold"
+              href={
+                session.user?.role === "User"
+                  ? "/user/dashboard"
+                  : "/admin/dashboard"
+              }
+              className="bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] 
+             text-lg font-body font-semibold flex items-center justify-center"
+            >
+              {session.user?.role === "User"
+                ? "Go to Scholars Portal"
+                : "Go to Admin Portal"}
+            </Link>
+          ) : (
+            <button
+              onClick={handleLoginClick}
+              disabled={isLoginDisabled}
+              className={`bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] text-lg font-body font-semibold ${
+                isLoginDisabled ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               LOG-IN
-            </Link>
+            </button>
           )}
         </div>
-        {/* Search Icon for Mobile, Tablet, Laptop, and XL screens */}
         <div className="flex items-center space-x-3 ml-auto xl:ml-0">
           <button
             onClick={openSearchModal}
@@ -108,7 +106,6 @@ const Navbar = () => {
             <FaSearch className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
           </button>
         </div>
-        {/* Hamburger Menu for Mobile and Tablet */}
         <button className="xl:hidden text-d12f27" onClick={toggleMenu}>
           {isMenuOpen ? (
             <AiOutlineClose className="w-6 h-6" />
@@ -118,7 +115,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile and Tablet Menu */}
       {isMenuOpen && (
         <div className="xl:hidden flex flex-col items-center mt-4 bg-white shadow-lg rounded-md p-4 space-y-3">
           <Link
@@ -139,35 +135,42 @@ const Navbar = () => {
           >
             News and Updates
           </Link>
-
-          {/* Container for Apply and Login Buttons in One Row */}
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-x-4 w-full mt-4">
             <Link
-              href=""
+              href="/apply"
               className="py-2 px-5 bg-[#e4542f] text-white hover:bg-[#b32c21] text-base sm:text-lg rounded-md w-full text-center font-body"
             >
               APPLY NOW
             </Link>
-            {isLoggedIn ? (
-              <button
-                onClick={handleLogout}
-                className="py-2 px-5 bg-[#d12f27] text-white hover:bg-[#b32c21] text-base sm:text-lg rounded-md w-full text-center font-body"
-              >
-                LOG-OUT
-              </button>
-            ) : (
+            {session ? (
               <Link
-                href="#login"
-                className="py-2 px-5 bg-[#d12f27] text-white hover:bg-[#b32c21] text-base sm:text-lg rounded-md w-full text-center font-body"
+                href={
+                  session.user?.role === "User"
+                    ? "/user/dashboard"
+                    : "/admin/dashboard"
+                }
+                className="bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] 
+             text-lg font-body font-semibold flex items-center justify-center"
+              >
+                {session.user?.role === "User"
+                  ? "Go to Scholars Portal"
+                  : "Go to Admin Portal"}
+              </Link>
+            ) : (
+              <button
+                onClick={handleLoginClick}
+                disabled={isLoginDisabled}
+                className={`bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] text-lg font-body font-semibold ${
+                  isLoginDisabled ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
                 LOG-IN
-              </Link>
+              </button>
             )}
           </div>
         </div>
       )}
 
-      {/* Search Modal for Small, Tablet, and Laptop Screens */}
       {isSearchModalOpen && (
         <div className="absolute top-full right-0 lg:right-0 w-full max-w-md z-20">
           <div className="bg-white p-4 mx-auto lg:w-auto">

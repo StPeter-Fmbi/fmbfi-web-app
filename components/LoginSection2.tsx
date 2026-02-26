@@ -1,52 +1,38 @@
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/router"; // Import useRouter
 import { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginSection = () => {
   const { data: session, status } = useSession();
-  const router = useRouter();
-
+  const router = useRouter(); // Initialize useRouter
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState(""); // New state for name
   const [errorMessage, setErrorMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
-  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login"); // State for toggling tabs
+  const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State for toggling confirm password visibility
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage("");
 
-    // Use NextAuth signIn with Credentials provider
-    const result = await signIn("credentials", {
-      redirect: false, // prevent automatic redirect to handle it manually
+    setErrorMessage(""); // Clear previous error message
+
+    const res = await signIn("credentials", {
+      redirect: false,
       email,
       password,
     });
 
-    if (result?.error) {
-      if (result.error === "CredentialsSignin") {
-        setErrorMessage("Invalid email or password.");
-      } else {
-        setErrorMessage("Login failed. Please try again.");
-      }
-      return;
-    }
-
-    if (result?.ok) {
-      // Get session to check user role
-      const session = await fetch("/api/auth/session").then((res) =>
-        res.json()
-      );
-
-      const userRole = session?.user?.role || "User";
-
-      if (userRole === "Admin") {
+    if (res?.error) {
+      setErrorMessage(res.error); // Set error message if login fails
+    } else if (res?.ok) {
+      if (session?.user?.role === "Admin") {
         router.push("/admin/dashboard");
-      } else if (userRole === "User") {
+      } else if (session?.user?.role === "User") {
         router.push("/user/dashboard");
-      } else {
-        router.push("/"); // fallback
       }
     }
   };
@@ -54,31 +40,36 @@ const LoginSection = () => {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setErrorMessage("");
+    setErrorMessage(""); // Clear previous error message
 
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match!");
+      return;
+    }
+
+    // Save the user data to the Google Sheet
     try {
-      const response = await fetch("/api/register", {
+      const response = await fetch("/api/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email }),
       });
 
       if (response.ok) {
         setErrorMessage("Registration successful! Please log in.");
-        setActiveTab("login");
-        setEmail("");
-        setPassword("");
       } else {
-        const data = await response.json();
-        setErrorMessage(data.error || "Failed to register.");
+        setErrorMessage("Failed to save user to sheet.");
       }
     } catch (error) {
-      setErrorMessage("An error occurred during registration.");
+      setErrorMessage("An error occurred while saving your data.");
     }
   };
 
+  // Check the session and navigate on initial load or session change
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === "loading") return; // Prevent unnecessary redirects while loading
 
     if (session) {
       if (session.user?.role === "Admin") {
@@ -114,7 +105,7 @@ const LoginSection = () => {
       <div className="absolute inset-0 bg-black opacity-40"></div>
 
       <div className="bg-white p-6 sm:p-8 md:p-12 rounded-lg shadow-xl w-[90%] sm:w-[500px] md:w-[600px] relative z-10 mt-12 sm:mt-16 md:mt-20">
-        <div
+        <div 
           className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mb-6 cursor-pointer"
           onClick={() => router.push("/")}
         >
@@ -132,9 +123,10 @@ const LoginSection = () => {
             } hover:text-[#d12f27] focus:outline-none font-body`}
             onClick={() => setActiveTab("login")}
           >
-            Log-in
+            Login
           </button>
 
+          {/* Separator */}
           <span className="text-gray-600">|</span>
 
           <button
@@ -185,7 +177,7 @@ const LoginSection = () => {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 id="password"
-                className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4 pr-14"
+                className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4 pr-14" // Add extra padding to the right
                 placeholder="Your Password"
                 required
               />
@@ -204,51 +196,38 @@ const LoginSection = () => {
               </div>
             </div>
 
-            <div className="flex flex-col items-center space-y-4 font-body">
-              {/* Regular Log-in button */}
-              <div className="flex items-center justify-center w-full max-w-lg">
-                <button
-                  type="submit"
-                  className="flex items-center justify-center w-full rounded-full shadow py-2 px-6 text-lg sm:text-xl lg:text-2xl text-white bg-[#d12f27] hover:bg-transparent hover:text-[#d12f27] hover:border-[#d12f27] border-4 border-transparent transition-colors duration-300 font-heading"
-                >
-                  Log-in
-                </button>
-              </div>
-
-              {/* --or-- separator */}
-              <div className="flex items-center w-full max-w-lg">
-                <hr className="flex-grow border-gray-300" />
-                <span className="px-4 text-md sm:text-lg lg:text-xl text-[#d12f27]  font-heading">
-                  or
-                </span>
-                <hr className="flex-grow border-gray-300" />
-              </div>
-
-              {/* Google sign-in button */}
-              <div className="flex items-center justify-center w-full max-w-lg">
-                <button
-                  type="button"
-                  onClick={() => signIn("google")}
-                  className="flex items-center justify-center w-full rounded-full shadow py-2 px-6 text-lg sm:text-xl lg:text-2xl text-[#d12f27] bg-white border-4 border-[#d12f27] hover:bg-[#d12f27] hover:text-white transition-colors duration-300 font-heading"
-                >
-                  <img
-                    src="/images/google-icon.svg"
-                    alt="Google"
-                    className="w-6 h-6 mr-4"
-                  />
-                  Sign in with Google
-                </button>
-              </div>
+            <div className="flex items-center justify-center">
+              <button
+                type="submit"
+                className="flex items-center justify-center w-full max-w-lg rounded-full shadow py-2 px-6 text-lg sm:text-xl lg:text-2xl text-white bg-[#d12f27] hover:bg-transparent hover:text-[#d12f27] hover:border-[#d12f27] border-4 border-transparent transition-colors duration-300"
+              >
+                Log-in
+              </button>
             </div>
           </form>
         ) : (
-          // Register Form
           <form onSubmit={handleRegisterSubmit} className="space-y-6">
             {errorMessage && (
               <div className="bg-red-500 text-white p-4 rounded-md">
                 {errorMessage}
               </div>
             )}
+
+            <div className="flex items-center justify-center">
+              <label htmlFor="name" className="sr-only">
+                Name
+              </label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                type="text"
+                name="name"
+                id="name"
+                className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4"
+                placeholder="Your Name"
+                required
+              />
+            </div>
 
             <div className="flex items-center justify-center">
               <label htmlFor="email" className="sr-only">
@@ -276,7 +255,7 @@ const LoginSection = () => {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 id="password"
-                className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4 pr-14"
+                className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4 pr-14" // Add extra right padding
                 placeholder="Your Password"
                 required
               />
@@ -287,6 +266,35 @@ const LoginSection = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
+                    <FaEyeSlash size={24} />
+                  ) : (
+                    <FaEye size={24} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center relative">
+              <label htmlFor="confirmPassword" className="sr-only">
+                Confirm Password
+              </label>
+              <input
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                id="confirmPassword"
+                className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4 pr-14" // Add extra right padding
+                placeholder="Confirm Password"
+                required
+              />
+              <div className="absolute inset-y-0 right-4 flex items-center">
+                <button
+                  type="button"
+                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
                     <FaEyeSlash size={24} />
                   ) : (
                     <FaEye size={24} />

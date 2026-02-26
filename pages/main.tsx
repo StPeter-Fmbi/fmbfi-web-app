@@ -3,16 +3,23 @@ import DemographicsSection from "@/components/DemographicsSection2";
 import FeaturesSection from "@/components/FeaturesSection";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection2";
-import Navbar from "@/components/NavBar";
+import Navbar from "@/components/NavBar2";
 import NewsSection2 from "@/components/NewsSection2";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { FaArrowUp } from "react-icons/fa";
+import { signOut, useSession } from "next-auth/react";
+import router, { useRouter } from "next/router";
 
 const Home = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const [showScroll, setShowScroll] = useState(false);
   const [footerHeight, setFooterHeight] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(true); // State to control modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [hasRedirected, setHasRedirected] = useState(false);
+
 
   const handleScroll = () => {
     setShowScroll(window.scrollY > 300);
@@ -46,6 +53,13 @@ const Home = () => {
 
         {/* Navbar */}
         <Navbar />
+
+        {/* <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
+        >
+          Sign Out
+        </button> */}
 
         {/* Hero Section */}
         <HeroSection />

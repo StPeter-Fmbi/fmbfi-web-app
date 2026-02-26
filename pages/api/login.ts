@@ -1,32 +1,51 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { allowCors } from "../../lib/cors";
-import { getUserData } from "../../lib/googleSheets"; // Import the function
+import { sql } from "@/lib/db";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-// Main handler function
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== "POST") {
-    return res.status(405).json({ message: "Only POST requests are allowed" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
+    return res.status(400).json({ error: "Email and password are required" });
   }
 
   try {
-    const user = await getUserData(email, password);
+    // Fetch all at once — much cleaner and future-proof
+    const result = await sql`
+      SELECT scholarid, username, email, password, auditdate, role
+      FROM tblusers
+      WHERE email = ${email}
+      LIMIT 1
+    `;
 
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    if (result.length === 0) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const role = user[2]; // Role is in the third column (index 2)
-    return res.status(200).json({ email, role });
-  } catch (error) {
-    console.error("Error fetching Google Sheets data:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+    const user = result[0];
 
-export default allowCors(handler); // Use the CORS handler
+    // Basic password validation (replace with hashing)
+    if (user.password !== password) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const safeUser = {
+      scholarid: user.scholarid,
+      username: user.username,
+      email: user.email,
+      auditdate: user.auditdate,
+      role: user.role || "User",
+    };
+
+    return res.status(200).json({ user: safeUser });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
