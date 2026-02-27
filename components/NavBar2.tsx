@@ -38,7 +38,7 @@ const Navbar = () => {
             alt="Logo"
             className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-full"
           />
-          <span className="text-xs sm:text-sm md:text-lg lg:text-xl xl:text-2xl font-body font-bold">
+          <span className="text-sm sm:text-base md:text-md lg:text-lg xl:text-2xl font-body font-bold">
             FRANCISCO M BAUTISTA FOUNDATION INC.
           </span>
         </div>
@@ -63,13 +63,14 @@ const Navbar = () => {
             News and Updates
           </Link>
         </div>
+
         <div className="hidden xl:flex items-center space-x-3 ml-auto">
-          <Link
+          {/* <Link
             href="/apply"
             className="bg-[#e4542f] text-white px-6 py-2 rounded-full hover:bg-[#b43b28] text-lg font-body font-semibold"
           >
             APPLY NOW
-          </Link>
+          </Link> */}
           {session ? (
             <Link
               href={
@@ -96,6 +97,7 @@ const Navbar = () => {
             </button>
           )}
         </div>
+
         <div className="flex items-center space-x-3 ml-auto xl:ml-0">
           <button
             onClick={openSearchModal}
@@ -106,6 +108,7 @@ const Navbar = () => {
             <FaSearch className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
           </button>
         </div>
+
         <button className="xl:hidden text-d12f27" onClick={toggleMenu}>
           {isMenuOpen ? (
             <AiOutlineClose className="w-6 h-6" />
@@ -136,12 +139,12 @@ const Navbar = () => {
             News and Updates
           </Link>
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-x-4 w-full mt-4">
-            <Link
+            {/* <Link
               href="/apply"
               className="py-2 px-5 bg-[#e4542f] text-white hover:bg-[#b32c21] text-base sm:text-lg rounded-md w-full text-center font-body"
             >
               APPLY NOW
-            </Link>
+            </Link> */}
             {session ? (
               <Link
                 href={
@@ -150,7 +153,7 @@ const Navbar = () => {
                     : "/admin/dashboard"
                 }
                 className="bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] 
-             text-lg font-body font-semibold flex items-center justify-center"
+       text-lg font-body font-semibold flex items-center justify-center w-full"
               >
                 {session.user?.role === "User"
                   ? "Go to Scholars Portal"
@@ -160,9 +163,10 @@ const Navbar = () => {
               <button
                 onClick={handleLoginClick}
                 disabled={isLoginDisabled}
-                className={`bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] text-lg font-body font-semibold ${
-                  isLoginDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] 
+       text-lg font-body font-semibold flex items-center justify-center w-full${
+         isLoginDisabled ? "opacity-50 cursor-not-allowed" : ""
+       }`}
               >
                 LOG-IN
               </button>
@@ -172,20 +176,22 @@ const Navbar = () => {
       )}
 
       {isSearchModalOpen && (
-        <div className="absolute top-full right-0 lg:right-0 w-full max-w-md z-20">
-          <div className="bg-white p-4 mx-auto lg:w-auto">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="p-2 pl-4 pr-10 rounded-full text-gray-800 w-full text-lg font-body"
-              />
-              <button
-                onClick={closeSearchModal}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-d12f27"
-              >
-                <AiOutlineClose className="w-5 h-5" />
-              </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start z-50 pt-20 px-4">
+          <div className="w-full max-w-full">
+            <div className="bg-white p-4 w-full">
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="p-3 pl-4 pr-10 rounded-full text-gray-800 w-full text-lg font-body"
+                />
+                <button
+                  onClick={closeSearchModal}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-d12f27"
+                >
+                  <AiOutlineClose className="w-6 h-6" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

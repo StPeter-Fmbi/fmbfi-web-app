@@ -106,7 +106,7 @@ const LoginSection = () => {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: 'url("/images/FMBFI.JPG")',
-          opacity: 0,
+          opacity: 70,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

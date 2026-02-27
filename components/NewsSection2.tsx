@@ -27,8 +27,6 @@ const NewsSection2 = () => {
       title: "ONE WITH NATURE",
       description:
         "Watch the tree planting outreach event on our Facebook page.",
-      embedUrl:
-        "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F303691128664664%2F&show_text=false&width=267&t=0",
     },
   ];
 
@@ -85,17 +83,37 @@ const NewsSection2 = () => {
               {/* FACEBOOK */}
               {item.type === "facebook-video" && (
                 <div
-                  className="w-full h-full flex items-center justify-center text-white cursor-pointer bg-cover bg-center"
+                  className="w-full h-full flex items-center justify-center text-white cursor-pointer bg-cover bg-center relative"
                   style={{ backgroundImage: `url(/images/FMBFI3.JPG)` }}
-                  onClick={() =>
-                    window.open(
-                      "https://www.facebook.com/reel/303691128664664/",
-                      "_blank",
-                    )
-                  }
                 >
-                  <div className="bg-black bg-opacity-50 px-4 py-2 rounded-lg text-lg sm:text-xl md:text-2xl text-center transition transform hover:scale-105 hover:bg-opacity-70">
-                    ▶ Watch on Facebook
+                  {/* Unified semi-transparent overlay */}
+                  <div className="absolute inset-0"></div>
+
+                  {/* Links inside one box */}
+                  <div className="relative z-10 flex flex-col items-center space-y-4 px-6 py-6  transition transform hover:scale-105 hover:bg-opacity-100">
+                    <div
+                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-[black] bg-opacity-70 hover:bg-[#b3271d] transition"
+                      onClick={() =>
+                        window.open(
+                          "https://www.facebook.com/reel/303691128664664/",
+                          "_blank",
+                        )
+                      }
+                    >
+                      ▶ Watch Video 1 on Facebook
+                    </div>
+
+                    <div
+                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-[black] bg-opacity-70 hover:bg-[#b3271d] transition"
+                      onClick={() =>
+                        window.open(
+                          "https://www.facebook.com/watch/?v=846049636852019",
+                          "_blank",
+                        )
+                      }
+                    >
+                      ▶ Watch Video 2 on Facebook
+                    </div>
                   </div>
                 </div>
               )}
