@@ -38,7 +38,7 @@ const GoogleFormSection = () => {
         <div className="flex justify-center space-x-6 sm:space-x-8 border-b pb-6 pt-4 sm:pt-6 md:pt-8">
           {/* Reduced the top padding here */}
           <h2 className="text-2xl sm:text-3xl font-heading text-center text-[#d12f27] font-bold">
-            Welcome to the 21st Qualifying FMBFI Examination 2025 registration
+            Welcome to the 22nd Qualifying FMBFI Examination 2026 registration
             portal!
           </h2>
         </div>
@@ -46,7 +46,7 @@ const GoogleFormSection = () => {
         <div className="flex justify-center w-full">
           <iframe
             //src={googleFormLink} // Use the environment variable for the iframe source
-            src="https://docs.google.com/forms/d/e/1FAIpQLSemqu5lRS-8kVLNs2idYH9BJ7I_QFTrlMuDIkqaQX_-CHIWYA/viewform?embedded=true" // Use the environment variable for the iframe source
+            src="https://docs.google.com/forms/d/e/1FAIpQLSeOlwXs6cHijlSoDINeLc_Y4Oz0xhOhGmwUxff3tA_BwXgopw/viewform?embedded=true" // Use the environment variable for the iframe source
             width="100%" // Ensures the iframe stretches to the container's width
             height="600" // You can adjust the height here
             title="Google Form"

@@ -65,12 +65,12 @@ const Navbar = () => {
         </div>
 
         <div className="hidden xl:flex items-center space-x-3 ml-auto">
-          {/* <Link
+          <Link
             href="/apply"
             className="bg-[#e4542f] text-white px-6 py-2 rounded-full hover:bg-[#b43b28] text-lg font-body font-semibold"
           >
             APPLY NOW
-          </Link> */}
+          </Link>
           {session ? (
             <Link
               href={

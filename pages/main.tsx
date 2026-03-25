@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection2";
 import Navbar from "@/components/NavBar2";
 import NewsSection2 from "@/components/NewsSection2";
+import AnnouncementModal from "@/components/Announcement";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { FaArrowUp } from "react-icons/fa";
@@ -81,7 +82,7 @@ const Home = () => {
       </div>
 
       {/* Announcement Modal */}
-      {/* <AnnouncementModal isOpen={isModalOpen} closeModal={closeModal} /> */}
+      <AnnouncementModal isOpen={isModalOpen} closeModal={closeModal} />
 
       {/* Back to Top Button */}
       {showScroll && (

@@ -36,7 +36,7 @@ const LoginSection = () => {
     if (result?.ok) {
       // Get session to check user role
       const session = await fetch("/api/auth/session").then((res) =>
-        res.json()
+        res.json(),
       );
 
       const userRole = session?.user?.role || "User";

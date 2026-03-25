@@ -8,14 +8,14 @@ const NewsSection2 = () => {
   const closeModal = () => setIsModalOpen(false);
 
   const announcements = [
-    // {
-    //   type: "image",
-    //   title: "FMBFI EXAMINATION 2025",
-    //   description:
-    //     "Stay informed about the FMBFI Examination scheduled for 2025.",
-    //   image: "/images/fmbfi-exam.png",
-    //   onClick: openModal,
-    // },
+    {
+      type: "image",
+      title: "FMBFI EXAMINATION 2026",
+      description:
+        "Stay informed about the FMBFI Examination scheduled for 2026.",
+      image: "/images/fmbfi-exam-2026.png",
+      onClick: openModal,
+    },
     {
       type: "video",
       title: "FMBFI GRADUATES FEATURED",
@@ -30,7 +30,8 @@ const NewsSection2 = () => {
     },
   ];
 
-  const isSingle = announcements.length === 1;
+  const firstAnnouncement = announcements[0];
+  const otherAnnouncements = announcements.slice(1);
 
   return (
     <section
@@ -44,71 +45,93 @@ const NewsSection2 = () => {
       <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-body font-extrabold text-white mb-6 relative z-10 text-center">
         LATEST NEWS & UPDATES
       </h2>
-      <p className="text-lg sm:text-xl md:text-2xl font-body text-white mb-6 relative z-10 text-center italic">
+      <p className="text-lg sm:text-xl md:text-2xl font-body text-white mb-10 relative z-10 text-center italic">
         Stay updated with the latest announcements and highlights from FMBFI.
       </p>
 
-      {/* Grid Layout */}
-      <div
-        className={`w-full max-w-7xl grid gap-8 relative z-10 ${
-          isSingle
-            ? "grid-cols-1 place-items-center"
-            : "grid-cols-1 lg:grid-cols-2 justify-items-center"
-        }`}
-      >
-        {announcements.map((item, index) => (
+      {/* FEATURED ANNOUNCEMENT */}
+      {firstAnnouncement && (
+        <div className="w-full max-w-5xl mb-10 relative z-10">
+          <div className="flex flex-col bg-[#e4542f] rounded-lg shadow-lg overflow-hidden w-full">
+            {/* MEDIA */}
+            <div className="w-full h-[420px] md:h-[500px] lg:h-[550px] overflow-hidden relative">
+              {firstAnnouncement.type === "image" && (
+                <img
+                  src={firstAnnouncement.image}
+                  alt={firstAnnouncement.title}
+                  className="w-full h-full object-fill bg-white cursor-pointer"
+                  onClick={firstAnnouncement.onClick}
+                />
+              )}
+            </div>
+
+            {/* TEXT */}
+            <div className="p-6 text-center">
+              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">
+                {firstAnnouncement.title}
+              </h3>
+              <p className="text-lg md:text-xl text-white">
+                {firstAnnouncement.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTHER ANNOUNCEMENTS - Full Width Like Featured */}
+      <div className="w-full max-w-5xl flex flex-col gap-8 relative z-10">
+        {otherAnnouncements.map((item, index) => (
           <div
             key={index}
-            className={`flex flex-col items-center bg-[#e4542f] rounded-lg shadow-lg overflow-hidden w-full ${
-              isSingle ? "max-w-3xl" : "max-w-xl"
-            }`}
+            className="flex flex-col items-center bg-[#e4542f] rounded-lg shadow-lg overflow-hidden w-full"
           >
             {/* MEDIA */}
-            <div
-              className={`w-full ${
-                isSingle ? "h-[360px]" : "h-[280px]"
-              } rounded-t-lg overflow-hidden relative`}
-            >
+            <div className="w-full h-[420px] md:h-[500px] lg:h-[550px] overflow-hidden relative">
+              {/* IMAGE */}
+              {item.type === "image" && (
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                />
+              )}
+
               {/* VIDEO */}
               {item.type === "video" && (
                 <iframe
                   className="w-full h-full"
                   src={item.videoUrl}
                   title={item.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               )}
 
-              {/* FACEBOOK */}
+              {/* FACEBOOK VIDEO */}
               {item.type === "facebook-video" && (
                 <div
-                  className="w-full h-full flex items-center justify-center text-white cursor-pointer bg-cover bg-center relative"
+                  className="w-full h-full flex items-center justify-center text-white bg-cover bg-center relative"
                   style={{ backgroundImage: `url(/images/FMBFI3.JPG)` }}
                 >
-                  {/* Unified semi-transparent overlay */}
+                  {/* Facebook overlay links */}
                   <div className="absolute inset-0"></div>
-
-                  {/* Links inside one box */}
-                  <div className="relative z-10 flex flex-col items-center space-y-4 px-6 py-6  transition transform hover:scale-105 hover:bg-opacity-100">
+                  <div className="relative z-10 flex flex-col items-center space-y-4 px-6 py-6 transition transform hover:scale-105">
                     <div
-                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-[black] bg-opacity-70 hover:bg-[#b3271d] transition"
+                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
                       onClick={() =>
                         window.open(
                           "https://www.facebook.com/reel/303691128664664/",
-                          "_blank",
+                          "_blank"
                         )
                       }
                     >
                       ▶ Watch Video 1 on Facebook
                     </div>
-
                     <div
-                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-[black] bg-opacity-70 hover:bg-[#b3271d] transition"
+                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
                       onClick={() =>
                         window.open(
                           "https://www.facebook.com/watch/?v=846049636852019",
-                          "_blank",
+                          "_blank"
                         )
                       }
                     >
@@ -120,23 +143,11 @@ const NewsSection2 = () => {
             </div>
 
             {/* TEXT */}
-            <div className={`p-4 text-center`}>
-              <h3
-                className={`font-body font-semibold text-white mb-2 ${
-                  isSingle
-                    ? "text-xl sm:text-2xl md:text-3xl"
-                    : "text-lg sm:text-xl md:text-2xl"
-                }`}
-              >
+            <div className="p-6 text-center">
+              <h3 className="text-xl md:text-2xl text-white font-semibold mb-2">
                 {item.title}
               </h3>
-              <p
-                className={`font-body text-white ${
-                  isSingle
-                    ? "text-base sm:text-lg md:text-xl"
-                    : "text-sm sm:text-base md:text-lg"
-                }`}
-              >
+              <p className="text-base md:text-lg text-white">
                 {item.description}
               </p>
             </div>
@@ -144,7 +155,7 @@ const NewsSection2 = () => {
         ))}
       </div>
 
-      {/* Modal */}
+      {/* MODAL */}
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
@@ -152,7 +163,7 @@ const NewsSection2 = () => {
         >
           <div onClick={(e) => e.stopPropagation()} className="relative">
             <img
-              src="/images/fmbfi-exam.png"
+              src="/images/fmbfi-exam-2026.png"
               alt="FMBFI Examination"
               className="max-w-full max-h-[90vh] object-contain"
             />
@@ -160,7 +171,7 @@ const NewsSection2 = () => {
               onClick={closeModal}
               className="absolute top-2 right-2 text-white text-4xl bg-transparent border-0 cursor-pointer"
             >
-              <MdClose />
+              <MdClose color="black" />
             </button>
           </div>
         </div>
