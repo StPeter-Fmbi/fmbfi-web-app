@@ -139,12 +139,12 @@ const Navbar = () => {
             News and Updates
           </Link>
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-x-4 w-full mt-4">
-            {/* <Link
+            <Link
               href="/apply"
               className="py-2 px-5 bg-[#e4542f] text-white hover:bg-[#b32c21] text-base sm:text-lg rounded-md w-full text-center font-body"
             >
               APPLY NOW
-            </Link> */}
+            </Link>
             {session ? (
               <Link
                 href={
