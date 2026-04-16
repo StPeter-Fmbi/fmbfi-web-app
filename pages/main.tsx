@@ -21,7 +21,6 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [hasRedirected, setHasRedirected] = useState(false);
 
-
   const handleScroll = () => {
     setShowScroll(window.scrollY > 300);
   };
@@ -82,7 +81,7 @@ const Home = () => {
       </div>
 
       {/* Announcement Modal */}
-      <AnnouncementModal isOpen={isModalOpen} closeModal={closeModal} />
+      {/* <AnnouncementModal isOpen={isModalOpen} closeModal={closeModal} /> */}
 
       {/* Back to Top Button */}
       {showScroll && (
