@@ -7,6 +7,7 @@ import {
   FiX,
   FiMenu,
   FiChevronDown,
+  FiInfo,
 } from "react-icons/fi";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -41,6 +42,7 @@ const Sidebar = () => {
   const navLinks = [
     { name: "Dashboard", icon: FiHome, path: "/user/dashboard" },
     { name: "Grades", icon: FiFileText, path: "/user/grades" },
+    { name: "Encode Subjects", icon: FiEdit, path: "/user/schoolyear" },
     { name: "Evaluation", icon: FiFileText, path: "/user/evaluation" },
   ];
 
