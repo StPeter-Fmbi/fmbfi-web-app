@@ -7,6 +7,10 @@ interface StudentHeaderProps {
 }
 
 const StudentHeader = ({ student, image, schoolName }: StudentHeaderProps) => {
+  const hasImage = image && image.trim() !== "";
+
+  const initials = `${student.firstname?.[0] || ""}${student.lastname?.[0] || ""}`;
+
   return (
     <header className="text-center mb-10 relative pt-20 md:pt-24">
       {/* Background highlight */}
@@ -14,11 +18,17 @@ const StudentHeader = ({ student, image, schoolName }: StudentHeaderProps) => {
 
       {/* Avatar */}
       <div className="relative inline-block -mt-16">
-        <img
-          src={image || "/images/default-avatar.png"}
-          alt="Profile"
-          className="h-28 w-28 rounded-full object-cover border-4 border-white shadow-lg"
-        />
+        {hasImage ? (
+          <img
+            src={image}
+            alt="Profile"
+            className="h-28 w-28 rounded-full object-cover border-4 border-white shadow-lg"
+          />
+        ) : (
+          <div className="h-28 w-28 rounded-full flex items-center justify-center bg-[#d12f27] text-white text-2xl font-bold border-4 border-white shadow-lg">
+            {initials || "?"}
+          </div>
+        )}
       </div>
 
       {/* Name */}
@@ -28,12 +38,16 @@ const StudentHeader = ({ student, image, schoolName }: StudentHeaderProps) => {
 
       {/* School */}
       {schoolName && (
-        <p className="text-gray-700 mt-1 text-lg font-semibold">{schoolName}</p>
+        <p className="text-gray-700 mt-1 text-lg font-semibold">
+          {schoolName}
+        </p>
       )}
 
       {/* Batch */}
       {student.batchno && (
-        <p className="text-gray-500 mt-1 text-sm font-medium">BATCH {student.batchno}</p>
+        <p className="text-gray-500 mt-1 text-sm font-medium">
+          BATCH {student.batchno}
+        </p>
       )}
     </header>
   );

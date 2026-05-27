@@ -2,6 +2,7 @@
 
 import { sql } from "@/lib/db";
 import type { NextApiRequest, NextApiResponse } from "next";
+import bcrypt from "bcryptjs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -16,15 +17,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Check if user already exists
-    const existingUser = await sql`SELECT * FROM tblusers WHERE email = ${email} LIMIT 1`;
+    const existingUser =
+      await sql`SELECT * FROM tbluser WHERE email = ${email} LIMIT 1`;
+
     if (existingUser.length > 0) {
       return res.status(409).json({ error: "User already exists" });
     }
 
-    // Insert user - password stored plaintext (not secure!)
+    // 🔐 HASH PASSWORD
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert user
     await sql`
-      INSERT INTO tbluser (email, password)
-      VALUES (${email}, ${password})
+      INSERT INTO tbluser (email, password, role)
+      VALUES (${email}, ${hashedPassword}, 'User')
     `;
 
     return res.status(201).json({ message: "User registered successfully" });

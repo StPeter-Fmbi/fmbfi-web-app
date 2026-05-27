@@ -52,6 +52,7 @@ const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: "/auth/login",
+    error: "/auth/error",
   },
 
   callbacks: {
@@ -61,7 +62,7 @@ const authOptions: NextAuthOptions = {
       // For Google, fetch user from DB to attach role, id, and name
       if (account?.provider === "google") {
         const dbUser = await getUserByEmail(user.email);
-        if (!dbUser) return false; // triggers OAuthSignin error
+        if (!dbUser) throw new Error("AccessDenied");
 
         user.id = dbUser.id;
         user.name = dbUser.name;

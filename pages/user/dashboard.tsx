@@ -4,21 +4,24 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Sidebar from "../../components/Sidebar";
 import Footer from "@/components/Footer";
-import { Student } from "@/types/student"; // path to the shared type
+import { Student } from "@/types/student";
 import StudentHeader from "@/components/StudentHeader";
 
 const StudentProfile = () => {
   const { data: session, status } = useSession({ required: true });
   const router = useRouter();
+
   const [student, setStudent] = useState<Student | null>(null);
   const [schoolName, setSchoolName] = useState("");
   const [error, setError] = useState("");
+  const [loadingData, setLoadingData] = useState(true);
 
   const fetchSchoolInfo = async (email: string) => {
     try {
       const res = await fetch(
-        `/api/student/getSchool?email=${encodeURIComponent(email)}`,
+        `/api/student/getSchool?email=${encodeURIComponent(email)}`
       );
+
       if (!res.ok) throw new Error("Failed to load school info");
 
       const data = await res.json();
@@ -27,14 +30,12 @@ const StudentProfile = () => {
       console.error(err);
     }
   };
-  
-  // Redirect if not logged in or wrong role
+
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role !== "User") {
       router.replace("/login");
     }
   }, [status, session, router]);
-  
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -42,26 +43,35 @@ const StudentProfile = () => {
 
     const fetchStudentAndSchool = async () => {
       try {
-        // Fetch student info
+        setLoadingData(true);
+
         const studentRes = await fetch(
-          `/api/student/student-by-email?email=${encodeURIComponent(session.user.email)}`,
+          `/api/student/student-by-email?email=${encodeURIComponent(
+            session.user.email
+          )}`
         );
+
         if (!studentRes.ok) throw new Error("Failed to fetch student data");
+
         const studentData: Student = await studentRes.json();
         setStudent(studentData);
 
-        // Fetch school info (depends on student email)
         const schoolRes = await fetch(
-          `/api/getSchool?email=${encodeURIComponent(studentData.email)}`,
+          `/api/getSchool?email=${encodeURIComponent(studentData.email)}`
         );
+
         if (!schoolRes.ok) throw new Error("Failed to load school info");
+
         const schoolData = await schoolRes.json();
 
-        // Set school name
-        if (schoolData.schoolname) setSchoolName(schoolData.schoolname);
+        if (schoolData.schoolname) {
+          setSchoolName(schoolData.schoolname);
+        }
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Failed to fetch data");
+      } finally {
+        setLoadingData(false);
       }
     };
 
@@ -74,17 +84,8 @@ const StudentProfile = () => {
     }
   }, [student]);
 
-  if (status === "loading") return <p className="p-6">Loading…</p>;
-  if (!session || session.user?.role !== "User") return <p>Redirecting…</p>;
-  if (error) return <p className="text-red-500 p-6">{error}</p>;
-
-  if (!student) {
-    return (
-      <div className="p-6 text-center text-gray-500 mt-24 xl:ml-64">
-        Loading your information…
-      </div>
-    );
-  }
+  // ✅ FIX: ONLY depend on loadingData + auth status
+  const isLoading = status === "loading" || loadingData;
 
   return (
     <>
@@ -96,121 +97,146 @@ const StudentProfile = () => {
         <Sidebar />
 
         {/* MAIN */}
-        <div className="flex-grow xl:ml-64 pt-24 p-6 font-body">
-          {/* HEADER */}
-          <StudentHeader
-            student={student}
-            image={session?.user?.image}
-            schoolName={schoolName}
-          />
+        <div className="flex-1 w-full xl:ml-64 pt-20 md:pt-24 p-3 sm:p-4 md:p-6 font-body overflow-x-hidden">
 
-          {/* Dashboard Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {/* Current GPA */}
-            <div className="bg-white border rounded-lg shadow p-4 text-center">
-              <p className="text-gray-500 text-sm">Current GPA</p>
-              <p className="text-2xl font-bold text-[#d12f27]">
-                {student.gpa ?? "N/A"}
-              </p>
-            </div>
+          {/* HEADER (only when ready) */}
+          {student && (
+            <StudentHeader
+              student={student}
+              image={session?.user?.image}
+              schoolName={schoolName}
+            />
+          )}
 
-            {/* Scholarship Status */}
-            <div className="bg-white border rounded-lg shadow p-4 text-center">
-              <p className="text-gray-500 text-sm">Scholarship Status</p>
-              <p
-                className={`text-2xl font-bold ${
-                  student.status === "Active"
-                    ? "text-green-600"
-                    : "text-[#d12f27]"
-                }`}
-              >
-                {student.status ?? "N/A"}
-              </p>
-            </div>
-          </div>
+          {/* LOADING (NO BUG NOW) */}
+          {isLoading && (
+            <div className="flex items-center gap-4 mb-6 animate-pulse">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-200" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {/* PERSONAL INFORMATION CARD */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 md:p-6 space-y-4 hover:shadow-md transition-shadow">
-              <h2 className="text-xl font-semibold text-[#d12f27] mb-3">
-                Personal Information
-              </h2>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {[
-                  { label: "Scholar ID", value: student.scholarid },
-                  { label: "Course", value: student.course || "—" },
-                  { label: "Year Level", value: student.courseyear },
-                ].map((item, idx) => (
-                  <div
-                    key={`personal-${idx}`}
-                    className="flex flex-col md:flex-row md:justify-between py-2"
-                  >
-                    <span className="text-gray-500 text-sm md:text-base">
-                      {item.label}
-                    </span>
-                    <span className="text-gray-800 text-sm md:text-base mt-1 md:mt-0">
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <div className="h-4 w-40 bg-gray-200 rounded" />
+                <div className="h-3 w-24 bg-gray-200 rounded" />
               </div>
             </div>
+          )}
 
-            {/* SCHOLARSHIP INFORMATION CARD */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 md:p-6 space-y-4 hover:shadow-md transition-shadow">
-              <h2 className="text-xl font-semibold text-[#d12f27] mb-3">
-                Scholarship Information
-              </h2>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {[
-                  { label: "Batch No", value: student.batchno },
-                  { label: "Academic Year", value: student.schoolyear },
-                  {
-                    label: "End of Scholarship",
-                    value: student.endofscholarshipdate
-                      ? new Date(
-                          student.endofscholarshipdate,
-                        ).toLocaleDateString()
-                      : "—",
-                  },
-                ].map((item, idx) => (
-                  <div
-                    key={`scholarship-${idx}`}
-                    className="flex flex-col md:flex-row md:justify-between py-2"
+          {/* ERROR */}
+          {error && <p className="text-red-500 p-4">{error}</p>}
+
+          {/* CONTENT */}
+          {!isLoading && student && (
+            <>
+              {/* STATS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-white border rounded-lg shadow p-4 text-center">
+                  <p className="text-gray-500 text-sm">Current GPA</p>
+                  <p className="text-2xl font-bold text-[#d12f27]">
+                    {student.gpa ?? "N/A"}
+                  </p>
+                </div>
+
+                <div className="bg-white border rounded-lg shadow p-4 text-center">
+                  <p className="text-gray-500 text-sm">Scholarship Status</p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      student.status === "Active"
+                        ? "text-green-600"
+                        : "text-[#d12f27]"
+                    }`}
                   >
-                    <span className="text-gray-500 text-sm md:text-base">
-                      {item.label}
-                    </span>
-                    <span className="text-gray-800 text-sm md:text-base mt-1 md:mt-0">
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
+                    {student.status ?? "N/A"}
+                  </p>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Dashboard Notifications / Announcements */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
-            {/* Announcements */}
-            <div className="bg-white border rounded-lg shadow p-4">
-              <h3 className="text-red-600 font-semibold mb-2">Announcements</h3>
-              <ul className="text-sm text-gray-700 space-y-1">
-                {student.announcements?.length ? (
-                  student.announcements.map((item, idx) => (
-                    <li key={idx}>
-                      <span className="font-medium">{item.title}</span> —{" "}
-                      {item.date
-                        ? new Date(item.date).toLocaleDateString()
-                        : ""}
-                    </li>
-                  ))
-                ) : (
-                  <li>No announcements yet.</li>
-                )}
-              </ul>
-            </div>
-          </div>
+              {/* CARDS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+                {/* PERSONAL */}
+                <div className="bg-white border rounded-xl shadow-sm p-5 md:p-6 space-y-4">
+                  <h2 className="text-xl font-semibold text-[#d12f27]">
+                    Personal Information
+                  </h2>
+
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {[
+                      { label: "Scholar ID", value: student.scholarid },
+                      { label: "Course", value: student.course || "—" },
+                      { label: "Year Level", value: student.courseyear },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex flex-col md:flex-row md:justify-between py-2"
+                      >
+                        <span className="text-gray-500 text-sm">
+                          {item.label}
+                        </span>
+                        <span className="text-gray-800 text-sm">
+                          {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* SCHOLARSHIP */}
+                <div className="bg-white border rounded-xl shadow-sm p-5 md:p-6 space-y-4">
+                  <h2 className="text-xl font-semibold text-[#d12f27]">
+                    Scholarship Information
+                  </h2>
+
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {[
+                      { label: "Batch No", value: student.batchno },
+                      { label: "Academic Year", value: student.schoolyear },
+                      {
+                        label: "End of Scholarship",
+                        value: student.endofscholarshipdate
+                          ? new Date(
+                              student.endofscholarshipdate
+                            ).toLocaleDateString()
+                          : "—",
+                      },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex flex-col md:flex-row md:justify-between py-2"
+                      >
+                        <span className="text-gray-500 text-sm">
+                          {item.label}
+                        </span>
+                        <span className="text-gray-800 text-sm">
+                          {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ANNOUNCEMENTS */}
+              <div className="bg-white border rounded-lg shadow p-4">
+                <h3 className="text-red-600 font-semibold mb-2">
+                  Announcements
+                </h3>
+
+                <ul className="text-sm text-gray-700 space-y-1">
+                  {student.announcements?.length ? (
+                    student.announcements.map((item, idx) => (
+                      <li key={idx}>
+                        <span className="font-medium">{item.title}</span> —{" "}
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString()
+                          : ""}
+                      </li>
+                    ))
+                  ) : (
+                    <li>No announcements yet.</li>
+                  )}
+                </ul>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

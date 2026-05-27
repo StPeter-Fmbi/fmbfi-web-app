@@ -9,14 +9,6 @@ const NewsSection2 = () => {
 
   const announcements = [
     {
-      type: "image",
-      title: "FMBFI EXAMINATION 2026",
-      description:
-        "Stay informed about the FMBFI Examination scheduled for 2026.",
-      image: "/images/fmbfi-exam-2026.png",
-      onClick: openModal,
-    },
-    {
       type: "video",
       title: "FMBFI GRADUATES FEATURED",
       description: "Watch the inspiring story of FMBFI Alumni in this video.",
@@ -30,73 +22,32 @@ const NewsSection2 = () => {
     },
   ];
 
-  const firstAnnouncement = announcements[0];
-  const otherAnnouncements = announcements.slice(1);
-
   return (
     <section
       id="news"
       className="min-h-screen bg-gray-50 flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-12 relative"
     >
-      {/* Semicircle Background */}
+      {/* BACKGROUND */}
       <div className="absolute top-0 left-0 w-full h-[calc(55vh)] bg-[#d12f27] rounded-b-full z-0"></div>
 
-      {/* Header */}
+      {/* HEADER */}
       <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-body font-extrabold text-white mb-6 relative z-10 text-center">
         LATEST NEWS & UPDATES
       </h2>
+
       <p className="text-lg sm:text-xl md:text-2xl font-body text-white mb-10 relative z-10 text-center italic">
         Stay updated with the latest announcements and highlights from FMBFI.
       </p>
 
-      {/* FEATURED ANNOUNCEMENT */}
-      {firstAnnouncement && (
-        <div className="w-full max-w-5xl mb-10 relative z-10">
-          <div className="flex flex-col bg-[#e4542f] rounded-lg shadow-lg overflow-hidden w-full">
-            {/* MEDIA */}
-            <div className="w-full h-[420px] md:h-[500px] lg:h-[550px] overflow-hidden relative">
-              {firstAnnouncement.type === "image" && (
-                <img
-                  src={firstAnnouncement.image}
-                  alt={firstAnnouncement.title}
-                  className="w-full h-full object-fill bg-white cursor-pointer"
-                  onClick={firstAnnouncement.onClick}
-                />
-              )}
-            </div>
-
-            {/* TEXT */}
-            <div className="p-6 text-center">
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">
-                {firstAnnouncement.title}
-              </h3>
-              <p className="text-lg md:text-xl text-white">
-                {firstAnnouncement.description}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* OTHER ANNOUNCEMENTS - Full Width Like Featured */}
+      {/* ALL ANNOUNCEMENTS (NO FEATURED) */}
       <div className="w-full max-w-5xl flex flex-col gap-8 relative z-10">
-        {otherAnnouncements.map((item, index) => (
+        {announcements.map((item, index) => (
           <div
             key={index}
             className="flex flex-col items-center bg-[#e4542f] rounded-lg shadow-lg overflow-hidden w-full"
           >
             {/* MEDIA */}
             <div className="w-full h-[420px] md:h-[500px] lg:h-[550px] overflow-hidden relative">
-              {/* IMAGE */}
-              {item.type === "image" && (
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-              )}
-
-              {/* VIDEO */}
               {item.type === "video" && (
                 <iframe
                   className="w-full h-full"
@@ -106,17 +57,14 @@ const NewsSection2 = () => {
                 />
               )}
 
-              {/* FACEBOOK VIDEO */}
               {item.type === "facebook-video" && (
                 <div
                   className="w-full h-full flex items-center justify-center text-white bg-cover bg-center relative"
                   style={{ backgroundImage: `url(/images/FMBFI3.JPG)` }}
                 >
-                  {/* Facebook overlay links */}
-                  <div className="absolute inset-0"></div>
-                  <div className="relative z-10 flex flex-col items-center space-y-4 px-6 py-6 transition transform hover:scale-105">
+                  <div className="relative z-10 flex flex-col items-center space-y-4 px-6 py-6">
                     <div
-                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
+                      className="cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
                       onClick={() =>
                         window.open(
                           "https://www.facebook.com/reel/303691128664664/",
@@ -125,17 +73,6 @@ const NewsSection2 = () => {
                       }
                     >
                       ▶ Watch Video 1 on Facebook
-                    </div>
-                    <div
-                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
-                      onClick={() =>
-                        window.open(
-                          "https://www.facebook.com/watch/?v=846049636852019",
-                          "_blank"
-                        )
-                      }
-                    >
-                      ▶ Watch Video 2 on Facebook
                     </div>
                   </div>
                 </div>
@@ -155,7 +92,7 @@ const NewsSection2 = () => {
         ))}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL (kept in case you reuse later) */}
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
@@ -169,7 +106,7 @@ const NewsSection2 = () => {
             />
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-white text-4xl bg-transparent border-0 cursor-pointer"
+              className="absolute top-2 right-2 text-white text-4xl"
             >
               <MdClose color="black" />
             </button>

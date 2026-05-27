@@ -89,7 +89,7 @@ const Navbar = () => {
             <button
               onClick={handleLoginClick}
               disabled={isLoginDisabled}
-              className={`bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] text-lg font-body font-semibold ${
+              className={`bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] text-lg font-body font-bold ${
                 isLoginDisabled ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
@@ -122,29 +122,34 @@ const Navbar = () => {
         <div className="xl:hidden flex flex-col items-center mt-4 bg-white shadow-lg rounded-md p-4 space-y-3">
           <Link
             href="#about"
-            className="py-2 px-4 text-[#d12f27] hover:bg-[#d12f27] hover:text-white text-base sm:text-lg rounded-md font-body"
+            className="w-full flex justify-center py-2 px-4 text-[#d12f27] hover:bg-[#d12f27] hover:text-white text-base sm:text-lg rounded-md font-body"
           >
             About Us
           </Link>
+
           <Link
             href="#demographics"
-            className="py-2 px-4 text-[#d12f27] hover:bg-[#d12f27] hover:text-white text-base sm:text-lg rounded-md font-body"
+            className="w-full flex justify-center py-2 px-4 text-[#d12f27] hover:bg-[#d12f27] hover:text-white text-base sm:text-lg rounded-md font-body"
           >
             Demographics
           </Link>
+
           <Link
             href="#news"
-            className="py-2 px-4 text-[#d12f27] hover:bg-[#d12f27] hover:text-white text-base sm:text-lg rounded-md font-body"
+            className="w-full flex justify-center py-2 px-4 text-[#d12f27] hover:bg-[#d12f27] hover:text-white text-base sm:text-lg rounded-md font-body"
           >
             News and Updates
           </Link>
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-x-4 w-full mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
+            {/* APPLY NOW*/}
             <Link
               href="/apply"
-              className="py-2 px-5 bg-[#e4542f] text-white hover:bg-[#b32c21] text-base sm:text-lg rounded-md w-full text-center font-body"
+              className="h-11 w-full flex items-center justify-center rounded-full bg-[#e4542f] text-white hover:bg-[#b32c21] text-base font-body font-semibold transition"
             >
               APPLY NOW
             </Link>
+
+            {/* SESSION BUTTON */}
             {session ? (
               <Link
                 href={
@@ -152,8 +157,7 @@ const Navbar = () => {
                     ? "/user/dashboard"
                     : "/admin/dashboard"
                 }
-                className="bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] 
-       text-lg font-body font-semibold flex items-center justify-center w-full"
+                className="h-11 w-full flex items-center justify-center rounded-full bg-[#d12f27] text-white hover:bg-[#b3271d] text-base font-body font-semibold transition"
               >
                 {session.user?.role === "User"
                   ? "Go to Scholars Portal"
@@ -163,10 +167,9 @@ const Navbar = () => {
               <button
                 onClick={handleLoginClick}
                 disabled={isLoginDisabled}
-                className={`bg-[#d12f27] text-white px-6 py-2 rounded-full hover:bg-[#b3271d] 
-       text-lg font-body font-semibold flex items-center justify-center w-full${
-         isLoginDisabled ? "opacity-50 cursor-not-allowed" : ""
-       }`}
+                className={`h-11 w-full flex items-center justify-center rounded-full bg-[#d12f27] text-white hover:bg-[#b3271d] text-base font-body font-semibold transition ${
+                  isLoginDisabled ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
                 LOG-IN
               </button>
