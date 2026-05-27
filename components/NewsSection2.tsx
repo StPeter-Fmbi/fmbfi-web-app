@@ -62,17 +62,30 @@ const NewsSection2 = () => {
                   className="w-full h-full flex items-center justify-center text-white bg-cover bg-center relative"
                   style={{ backgroundImage: `url(/images/FMBFI3.JPG)` }}
                 >
-                  <div className="relative z-10 flex flex-col items-center space-y-4 px-6 py-6">
+                  {/* Facebook overlay links */}
+                  <div className="absolute inset-0"></div>
+                  <div className="relative z-10 flex flex-col items-center space-y-4 px-6 py-6 transition transform hover:scale-105">
                     <div
-                      className="cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
+                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
                       onClick={() =>
                         window.open(
                           "https://www.facebook.com/reel/303691128664664/",
-                          "_blank"
+                          "_blank",
                         )
                       }
                     >
                       ▶ Watch Video 1 on Facebook
+                    </div>
+                    <div
+                      className="text-lg sm:text-xl md:text-2xl text-center w-full cursor-pointer px-6 py-2 rounded-full bg-black bg-opacity-70 hover:bg-[#b3271d] transition"
+                      onClick={() =>
+                        window.open(
+                          "https://www.facebook.com/watch/?v=846049636852019",
+                          "_blank",
+                        )
+                      }
+                    >
+                      ▶ Watch Video 2 on Facebook
                     </div>
                   </div>
                 </div>
