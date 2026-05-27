@@ -10,7 +10,7 @@ interface GradeEntry {
   year: string;
   sem: string;
   subject: string;
-  schoolcode: string;
+  subjectcode: string;
 }
 
 const SchoolSection = () => {
@@ -25,7 +25,7 @@ const SchoolSection = () => {
       year: "",
       sem: "",
       subject: "",
-      schoolcode: "",
+      subjectcode: "",
     },
   ]);
 
@@ -84,7 +84,7 @@ const SchoolSection = () => {
     if (!student) return;
 
     const filled = gradeEntries.filter(
-      (e) => e.year && e.sem && e.subject && e.schoolcode,
+      (e) => e.year && e.sem && e.subject && e.subjectcode,
     );
 
     if (!filled.length) {
@@ -98,7 +98,7 @@ const SchoolSection = () => {
         year: entry.year,
         sem: entry.sem,
         subject: entry.subject,
-        schoolcode: entry.schoolcode,
+        subjectcode: entry.subjectcode,
       }));
 
       const res = await fetch("/api/add-grade", {
@@ -120,7 +120,7 @@ const SchoolSection = () => {
           year: "",
           sem: "",
           subject: "",
-          schoolcode: "",
+          subjectcode: "",
         },
       ]);
 
@@ -176,7 +176,7 @@ const SchoolSection = () => {
               <span>Year</span>
               <span>Semester</span>
               <span>Subject</span>
-              <span>School Code</span>
+              <span>Subject Code</span>
               <span />
             </div>
 
@@ -220,14 +220,14 @@ const SchoolSection = () => {
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#d12f27]"
                   />
 
-                  {/* SCHOOL CODE */}
+                  {/* SUBJECT CODE */}
                   <input
                     type="text"
-                    value={entry.schoolcode}
+                    value={entry.subjectcode}
                     onChange={(e) =>
-                      handleChange(index, "schoolcode", e.target.value)
+                      handleChange(index, "subjectcode", e.target.value)
                     }
-                    placeholder="School Code"
+                    placeholder="Subject Code"
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#d12f27]"
                   />
 
@@ -258,7 +258,7 @@ const SchoolSection = () => {
                       year: "",
                       sem: "",
                       subject: "",
-                      schoolcode: "",
+                      subjectcode: "",
                     },
                   ])
                 }
