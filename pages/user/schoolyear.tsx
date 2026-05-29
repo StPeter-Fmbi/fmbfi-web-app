@@ -103,22 +103,39 @@ const SchoolSection = () => {
         sem: entry.sem,
         subject: entry.subject,
         subjectcode: entry.subjectcode,
+        StudentID: student.scholarid,
       }));
 
-      const res = await fetch("/api/add-grade", {
+      const res = await fetch("/api/subjects/add-subject", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed to submit");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit");
+      }
 
       setError("");
-      setGradeEntries([{ year: "", sem: "", subject: "", subjectcode: "" }]);
+
+      setGradeEntries([
+        {
+          year: "",
+          sem: "",
+          subject: "",
+          subjectcode: "",
+        },
+      ]);
 
       alert("Submitted successfully!");
-    } catch {
-      setError("Failed to submit grades");
+    } catch (err: any) {
+      console.error(err);
+
+      setError(err.message || "Failed to submit grades");
     }
   };
 
@@ -333,6 +350,7 @@ const SchoolSection = () => {
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleSubmit}
                   className="bg-[#d12f27] text-white px-4 py-2 rounded"
                 >

@@ -17,25 +17,13 @@ interface GradeEntry {
   grade: string;
 }
 
-interface ICourse {
-  course: string;
-  subjectcode: string;
-  subjectdescription: string;
-}
-
-interface ISubject {
-  Subject: string;
-  SubjectCode: string;
-}
-
 const GradesSection = () => {
   const { data: session, status } = useSession({ required: true });
 
   const [student, setStudent] = useState<Student | null>(null);
   const [schoolName, setSchoolName] = useState("");
   const [course, setCourse] = useState("");
-  // const [subjects, setSubjects] = useState<Course[]>([])
-  const [subjects, setSubjects] = useState<ISubject[]>([]);
+  const [subjects, setSubjects] = useState<Course[]>([]);
   const [gradeEntries, setGradeEntries] = useState<GradeEntry[]>([
     { subject: "", grade: "" },
   ]);
@@ -73,26 +61,14 @@ const GradesSection = () => {
 
         if (schoolData.schoolname) setSchoolName(schoolData.schoolname);
 
-        // if (schoolData.courses?.length > 0) {
-        //   const firstCourse = schoolData.courses[0].course;
-        //   setCourse(firstCourse);
+        if (schoolData.courses?.length > 0) {
+          const firstCourse = schoolData.courses[0].course;
+          setCourse(firstCourse);
 
-        //   setSubjects(
-        //     schoolData.courses.filter((c: Course) => c.course === firstCourse),
-        //   );
-        // }
-
-        const subjectRes = await fetch("/api/subjects");
-
-        if (!subjectRes.ok) {
-          throw new Error("Failed to load subjects");
+          setSubjects(
+            schoolData.courses.filter((c: Course) => c.course === firstCourse),
+          );
         }
-
-        const subjectData = await subjectRes.json();
-
-        if (!mounted) return;
-
-        setSubjects(subjectData);
       } catch (err: any) {
         console.error(err);
         if (mounted) setError(err.message || "Failed to fetch data");
@@ -128,23 +104,14 @@ const GradesSection = () => {
       return;
     }
 
-    // const payload = filled.map((entry) => ({
-    //   email: student.email,
-    //   course,
-    //   subject: entry.subject,
-    //   grade: Number(entry.grade),
-    // }));
-
     const payload = filled.map((entry) => ({
-      StudentId: student.scholarid,
+      email: student.email,
+      course,
       subject: entry.subject,
-      subjectcode:
-        subjects.find((s) => s.Subject === entry.subject)?.SubjectCode || "",
       grade: Number(entry.grade),
     }));
 
-    // fetch("/api/add-grade", {
-    fetch("/api/grades/add-grades", {
+    fetch("/api/add-grade", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -233,16 +200,22 @@ const GradesSection = () => {
                       >
                         <option value="">Select subject</option>
                         {subjects.map((s) => (
-                          <option key={s.SubjectCode} value={s.Subject}>
-                            {s.Subject}
+                          <option
+                            key={s.subjectcode}
+                            value={s.subjectdescription}
+                          >
+                            {s.subjectdescription}
                           </option>
                         ))}
                       </select>
 
                       <input
                         value={
-                          subjects.find((s) => s.Subject === entry.subject)
-                            ?.SubjectCode || ""
+                          entry.subject
+                            ? subjects.find(
+                                (s) => s.subjectdescription === entry.subject,
+                              )?.subjectcode || ""
+                            : ""
                         }
                         disabled
                         className="w-full border rounded px-3 py-2 bg-gray-100 text-center"
@@ -298,8 +271,11 @@ const GradesSection = () => {
                           >
                             <option value="">--Select subject--</option>
                             {subjects.map((s) => (
-                              <option key={s.SubjectCode} value={s.Subject}>
-                                {s.Subject}
+                              <option
+                                key={s.subjectcode}
+                                value={s.subjectdescription}
+                              >
+                                {s.subjectdescription}
                               </option>
                             ))}
                           </select>
@@ -309,8 +285,9 @@ const GradesSection = () => {
                             value={
                               entry.subject
                                 ? subjects.find(
-                                    (s) => s.Subject === entry.subject,
-                                  )?.SubjectCode || ""
+                                    (s) =>
+                                      s.subjectdescription === entry.subject,
+                                  )?.subjectcode || ""
                                 : ""
                             }
                             disabled
