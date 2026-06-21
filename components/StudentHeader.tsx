@@ -9,7 +9,7 @@ interface StudentHeaderProps {
 const StudentHeader = ({ student, image, schoolName }: StudentHeaderProps) => {
   const hasImage = image && image.trim() !== "";
 
-  const initials = `${student.firstname?.[0] || ""}${student.lastname?.[0] || ""}`;
+  const initials = `${student.first_name?.[0] || ""}${student.last_name?.[0] || ""}`;
 
   return (
     <header className="text-center mb-10 relative pt-20 md:pt-24">
@@ -33,7 +33,7 @@ const StudentHeader = ({ student, image, schoolName }: StudentHeaderProps) => {
 
       {/* Name */}
       <h1 className="mt-4 text-3xl font-bold text-[#d12f27]">
-        {student.firstname} {student.middlename} {student.lastname}
+        {student.first_name?.toUpperCase()} {student.middle_name?.toUpperCase()} {student.last_name?.toUpperCase()}
       </h1>
 
       {/* School */}
@@ -44,9 +44,9 @@ const StudentHeader = ({ student, image, schoolName }: StudentHeaderProps) => {
       )}
 
       {/* Batch */}
-      {student.batchno && (
+      {student.batch && (
         <p className="text-gray-500 mt-1 text-sm font-medium">
-          BATCH {student.batchno}
+          BATCH {student.year_start}
         </p>
       )}
     </header>

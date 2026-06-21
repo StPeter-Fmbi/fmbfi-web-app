@@ -19,7 +19,7 @@ const StudentProfile = () => {
   const fetchSchoolInfo = async (email: string) => {
     try {
       const res = await fetch(
-        `/api/student/getSchool?email=${encodeURIComponent(email)}`
+        `/api/student/getSchool?email=${encodeURIComponent(email)}`,
       );
 
       if (!res.ok) throw new Error("Failed to load school info");
@@ -47,8 +47,8 @@ const StudentProfile = () => {
 
         const studentRes = await fetch(
           `/api/student/student-by-email?email=${encodeURIComponent(
-            session.user.email
-          )}`
+            session.user.email,
+          )}`,
         );
 
         if (!studentRes.ok) throw new Error("Failed to fetch student data");
@@ -57,7 +57,7 @@ const StudentProfile = () => {
         setStudent(studentData);
 
         const schoolRes = await fetch(
-          `/api/getSchool?email=${encodeURIComponent(studentData.email)}`
+          `/api/getSchool?email=${encodeURIComponent(studentData.email)}`,
         );
 
         if (!schoolRes.ok) throw new Error("Failed to load school info");
@@ -98,7 +98,6 @@ const StudentProfile = () => {
 
         {/* MAIN */}
         <div className="flex-1 w-full xl:ml-64 pt-20 md:pt-24 p-3 sm:p-4 md:p-6 font-body overflow-x-hidden">
-
           {/* HEADER (only when ready) */}
           {student && (
             <StudentHeader
@@ -130,9 +129,7 @@ const StudentProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white border rounded-lg shadow p-4 text-center">
                   <p className="text-gray-500 text-sm">Current GPA</p>
-                  <p className="text-2xl font-bold text-[#d12f27]">
-                    {student.gpa ?? "N/A"}
-                  </p>
+                  <p className="text-2xl font-bold text-[#d12f27]">{"N/A"}</p>
                 </div>
 
                 <div className="bg-white border rounded-lg shadow p-4 text-center">
@@ -151,7 +148,6 @@ const StudentProfile = () => {
 
               {/* CARDS */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-
                 {/* PERSONAL */}
                 <div className="bg-white border rounded-xl shadow-sm p-5 md:p-6 space-y-4">
                   <h2 className="text-xl font-semibold text-[#d12f27]">
@@ -160,9 +156,9 @@ const StudentProfile = () => {
 
                   <div className="flex flex-col divide-y divide-gray-100">
                     {[
-                      { label: "Scholar ID", value: student.scholarid },
+                      { label: "Scholar ID", value: student.scholardid },
                       { label: "Course", value: student.course || "—" },
-                      { label: "Year Level", value: student.courseyear },
+                      { label: "Year Level", value: student.sy },
                     ].map((item, idx) => (
                       <div
                         key={idx}
@@ -187,16 +183,16 @@ const StudentProfile = () => {
 
                   <div className="flex flex-col divide-y divide-gray-100">
                     {[
-                      { label: "Batch No", value: student.batchno },
-                      { label: "Academic Year", value: student.schoolyear },
-                      {
-                        label: "End of Scholarship",
-                        value: student.endofscholarshipdate
-                          ? new Date(
-                              student.endofscholarshipdate
-                            ).toLocaleDateString()
-                          : "—",
-                      },
+                      { label: "Batch No", value: student.batch },
+                      { label: "Academic Year", value: student.sy },
+                      // {
+                      //   label: "End of Scholarship",
+                      //   value: student.endofscholarshipdate
+                      //     ? new Date(
+                      //         student.endofscholarshipdate
+                      //       ).toLocaleDateString()
+                      //     : "—",
+                      // },
                     ].map((item, idx) => (
                       <div
                         key={idx}

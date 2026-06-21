@@ -11,6 +11,7 @@ interface GradeEntry {
   sem: string;
   subject: string;
   subjectcode: string;
+  enrollmentid: string;
 }
 
 const SchoolSection = () => {
@@ -22,7 +23,7 @@ const SchoolSection = () => {
   const [loadingData, setLoadingData] = useState(true);
 
   const [gradeEntries, setGradeEntries] = useState<GradeEntry[]>([
-    { year: "", sem: "", subject: "", subjectcode: "" },
+    { year: "", sem: "", subject: "", subjectcode: "", enrollmentid: "" },
   ]);
 
   // FETCH DATA ONLY ONCE (NO RE-FLICKER)
@@ -103,7 +104,8 @@ const SchoolSection = () => {
         sem: entry.sem,
         subject: entry.subject,
         subjectcode: entry.subjectcode,
-        StudentID: student.scholarid,
+        StudentID: student.scholardid,
+        enrollmentid: entry.enrollmentid
       }));
 
       const res = await fetch("/api/subjects/add-subject", {
@@ -128,6 +130,7 @@ const SchoolSection = () => {
           sem: "",
           subject: "",
           subjectcode: "",
+          enrollmentid: "",
         },
       ]);
 
@@ -341,7 +344,7 @@ const SchoolSection = () => {
                   onClick={() =>
                     setGradeEntries([
                       ...gradeEntries,
-                      { year: "", sem: "", subject: "", subjectcode: "" },
+                      { year: "", sem: "", subject: "", subjectcode: "", enrollmentid: "" },
                     ])
                   }
                   className="text-sm text-gray-500 hover:text-red-500"

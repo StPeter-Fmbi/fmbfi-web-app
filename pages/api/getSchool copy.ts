@@ -11,10 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // 1️⃣ Get student info
     const [studentInfo] = await sql`
-      SELECT a.scholardid, a.school, a.course
-      FROM tblscholarsdata as a
-      INNER JOIN tblUsers as b ON a.scholardid = b.scholardid
-      WHERE B.email = ${email}
+      SELECT schoolid, course
+      FROM tblstudent
+      WHERE email = ${email}
       LIMIT 1
     `;
 
@@ -22,30 +21,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "Student not found" });
     }
 
-    const { scholardid, school } = studentInfo;
+    const { schoolid, course } = studentInfo;
 
     // 2️⃣ Get school name from refschool
-    const [schoolInfo] = await sql`
-      SELECT school
-      FROM tblscholarsdata
-      WHERE scholardid = ${scholardid}
+    const [school] = await sql`
+      SELECT schoolname, campus
+      FROM refschool
+      WHERE schoolid = ${schoolid}
       LIMIT 1
     `;
 
     // 3️⃣ Get subjects from refschoolmasterfile
     const subjects = await sql`
-      SELECT subjectname, subjectcode
-      FROM tblscholarsubjects
-      WHERE scholarid = ${scholardid}
+      SELECT subjectcode, subjectdescription
+      FROM refschoolmasterfile
+      WHERE schoolid = ${schoolid} AND course = ${course}
     `;
 
     return res.status(200).json({
-      //schoolid,
-      schoolname: schoolInfo?.school || "-",
-      //campus: schoolInfo?.campus || "-",
+      schoolid,
+      schoolname: school?.schoolname || "-",
+      campus: school?.campus || "-",
       courses: subjects.map((s) => ({
         subjectcode: s.subjectcode,
-        subjectname: s.subjectname,
+        subjectdescription: s.subjectdescription,
       })),
     });
   } catch (err) {

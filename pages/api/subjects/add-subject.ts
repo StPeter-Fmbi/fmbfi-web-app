@@ -22,27 +22,50 @@ export default async function handler(
       });
     }
 
+    const year = new Date().getFullYear();
+
+  const result = await sql`
+    SELECT enrollmentid
+    FROM tblscholarsubjects
+    WHERE enrollmentid LIKE ${`ENR-${year}-%`}
+    ORDER BY enrollmentid DESC
+    LIMIT 1
+  `;
+
+  let nextNumber = 1;
+
+  if (result.length > 0) {
+    nextNumber =
+      parseInt(result[0].enrollmentid.split("-")[2], 10) + 1;
+  }
+
+  const enrollmentid =
+    "ENR-" +
+    year +
+    "-" +
+    String(nextNumber).padStart(5, "0");
+
     await sql.transaction(
       body.map(
         (item: any) =>
           sql`
-          INSERT INTO "TblSubject"
+          INSERT INTO "tblscholarsubjects"
           (
-            "Year",
-            "Semester",
-            "Subject",
-            "SubjectCode",
-            "StudentID",
-            "IsActive"
+            "enrollmentid",
+            "year",
+            "semester",
+            "subjectname",
+            "subjectcode",
+            "scholarid"
           )
           VALUES
           (
+            ${enrollmentid},
             ${item.year},
             ${item.sem},
             ${item.subject},
             ${item.subjectcode},
-            ${item.StudentID},
-            true
+            ${item.StudentID}
           )
         `,
       ),

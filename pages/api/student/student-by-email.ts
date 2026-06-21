@@ -10,9 +10,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // const [student] = await sql`
+    //   SELECT scholarid, lastname, firstname, middlename, schoolid, email, mobileno, coursecode, courseyear, course, gpa, dateofbirth, batchno, schoolyear, endofscholarshipdate, status
+    //   FROM tblstudent
+    //   WHERE email = ${email}
+    //   LIMIT 1
+    // `;
+
     const [student] = await sql`
-      SELECT scholarid, lastname, firstname, middlename, schoolid, email, mobileno, coursecode, courseyear, course, gpa, dateofbirth, batchno, schoolyear, endofscholarshipdate, status
-      FROM tblstudent
+      SELECT scholardid, last_name, first_name, middle_name, school, email, mobile_no, course, sy, status, batch, year_start
+      FROM tblscholarsdata
       WHERE email = ${email}
       LIMIT 1
     `;

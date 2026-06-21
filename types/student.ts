@@ -1,20 +1,17 @@
 // types/student.ts
 export type Student = {
-  scholarid: number;
-  lastname: string;
-  firstname: string;
-  middlename?: string | null;
-  schoolid: string;
+  scholardid: number;
+  last_name: string;
+  first_name: string;
+  middle_name?: string | null;
+  school: string;
   email: string;
-  mobileno: string;
-  coursecode: string;
-  courseyear: string;
+  mobile_no: string;
+  sy: string;
   course?: string | null;
-  gpa?: number | null;
-  dateofbirth: string;
-  batchno: string;
-  schoolyear: string;
-  endofscholarshipdate?: string | null;
+  batch: string;
+  year_start: string;
+  //endofscholarshipdate?: string | null;
   status?: string | null;
   announcements?: { title: string; date?: string }[];
 };

@@ -136,7 +136,7 @@ const GradesSection = () => {
     // }));
 
     const payload = filled.map((entry) => ({
-      StudentId: student.scholarid,
+      StudentId: student.scholardid,
       subject: entry.subject,
       subjectcode:
         subjects.find((s) => s.Subject === entry.subject)?.SubjectCode || "",
@@ -201,8 +201,11 @@ const GradesSection = () => {
                 </h2>
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="text-4xl sm:text-5xl font-extrabold text-[#d12f27]">
+                  {/* <div className="text-4xl sm:text-5xl font-extrabold text-[#d12f27]">
                     {student.gpa ? student.gpa.toFixed(1) : "—"}
+                  </div> */}
+                  <div className="text-4xl sm:text-5xl font-extrabold text-[#d12f27]">
+                    {"—"}
                   </div>
                   <div className="text-sm text-gray-600">
                     <p className="font-medium">Current GPA</p>
