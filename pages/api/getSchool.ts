@@ -1,55 +1,74 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { sql } from "@/lib/db";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   const { email } = req.query;
 
   if (!email || typeof email !== "string") {
-    return res.status(400).json({ error: "Email is required" });
+    return res.status(400).json({
+      error: "Email is required",
+    });
   }
 
   try {
-    // 1️⃣ Get student info
+    // Get student information
     const [studentInfo] = await sql`
-      SELECT a.scholardid, a.school, a.course
-      FROM tblscholarsdata as a
-      INNER JOIN tblUsers as b ON a.scholardid = b.scholardid
-      WHERE B.email = ${email}
+      SELECT
+        a.scholardid,
+        a.school,
+        a.course
+      FROM tblscholarsdata a
+      INNER JOIN tblUsers b
+        ON a.scholardid = b.scholardid
+      WHERE b.email = ${email}
       LIMIT 1
     `;
 
     if (!studentInfo) {
-      return res.status(404).json({ error: "Student not found" });
+      return res.status(404).json({
+        error: "Student not found",
+      });
     }
 
-    const { scholardid, school } = studentInfo;
+    const { scholardid, school, course } = studentInfo;
 
-    // 2️⃣ Get school name from refschool
-    const [schoolInfo] = await sql`
-      SELECT school
-      FROM tblscholarsdata
-      WHERE scholardid = ${scholardid}
-      LIMIT 1
-    `;
-
-    // 3️⃣ Get subjects from refschoolmasterfile
+    // Get enrolled subjects
     const subjects = await sql`
-      SELECT subjectname, subjectcode
+      SELECT
+        enrollmentid,
+        academicyear,
+        semester,
+        subjectname,
+        subjectcode,
+        units
       FROM tblscholarsubjects
       WHERE scholarid = ${scholardid}
+      ORDER BY academicyear DESC,
+               semester,
+               subjectcode
     `;
 
     return res.status(200).json({
-      //schoolid,
-      schoolname: schoolInfo?.school || "-",
-      //campus: schoolInfo?.campus || "-",
+      scholardid,
+      schoolname: school || "-",
+      course: course || "-",
       courses: subjects.map((s) => ({
+        enrollmentid: s.enrollmentid,
+        academicyear: s.academicyear,
+        semester: s.semester,
         subjectcode: s.subjectcode,
         subjectname: s.subjectname,
+        units: s.units,
       })),
     });
   } catch (err) {
     console.error("Error fetching school data:", err);
-    return res.status(500).json({ error: "Internal server error" });
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 }

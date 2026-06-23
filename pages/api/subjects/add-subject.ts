@@ -15,72 +15,113 @@ export default async function handler(
   try {
     const body = req.body;
 
-    if (!Array.isArray(body)) {
+    if (!Array.isArray(body) || body.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Invalid payload",
       });
     }
 
-    const year = new Date().getFullYear();
-
-  const result = await sql`
-    SELECT enrollmentid
-    FROM tblscholarsubjects
-    WHERE enrollmentid LIKE ${`ENR-${year}-%`}
-    ORDER BY enrollmentid DESC
-    LIMIT 1
-  `;
-
-  let nextNumber = 1;
-
-  if (result.length > 0) {
-    nextNumber =
-      parseInt(result[0].enrollmentid.split("-")[2], 10) + 1;
-  }
-
-  const enrollmentid =
-    "ENR-" +
-    year +
-    "-" +
-    String(nextNumber).padStart(5, "0");
-
-    await sql.transaction(
-      body.map(
-        (item: any) =>
-          sql`
-          INSERT INTO "tblscholarsubjects"
-          (
-            "enrollmentid",
-            "year",
-            "semester",
-            "subjectname",
-            "subjectcode",
-            "scholarid"
-          )
-          VALUES
-          (
-            ${enrollmentid},
-            ${item.year},
-            ${item.sem},
-            ${item.subject},
-            ${item.subjectcode},
-            ${item.StudentID}
-          )
-        `,
-      ),
+    // Validate required fields
+    const invalidRow = body.find(
+      (item) =>
+        !item.year ||
+        !item.sem ||
+        !item.subject ||
+        !item.subjectcode ||
+        !item.StudentID,
     );
 
-    return res.status(200).json({
-      success: true,
-      message: "Inserted successfully",
-    });
+    if (invalidRow) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields.",
+      });
+    }
+
+    // Check duplicate subject codes in request
+    const subjectCodes = body.map((x) =>
+      String(x.subjectcode).trim().toUpperCase(),
+    );
+
+    const hasDuplicateCodes =
+      new Set(subjectCodes).size !== subjectCodes.length;
+
+    if (hasDuplicateCodes) {
+      return res.status(400).json({
+        success: false,
+        message: "Duplicate subject codes found.",
+      });
+    }
+
+    const currentYear = new Date().getFullYear();
+
+    const latestEnrollment = await sql`
+      SELECT enrollmentid
+      FROM tblscholarsubjects
+      WHERE enrollmentid LIKE ${`ENR-${currentYear}-%`}
+      ORDER BY enrollmentid DESC
+      LIMIT 1
+    `;
+
+    let nextNumber = 1;
+
+    if (latestEnrollment.length > 0) {
+      const lastId = latestEnrollment[0].enrollmentid;
+
+      const parts = lastId.split("-");
+
+      if (parts.length === 3) {
+        nextNumber = parseInt(parts[2], 10) + 1;
+      }
+    }
+
+const generatedIds: string[] = [];
+
+for (let i = 0; i < body.length; i++) {
+  const item = body[i];
+
+  const enrollmentid =
+    `ENR-${currentYear}-${String(nextNumber + i).padStart(5, "0")}`;
+
+  generatedIds.push(enrollmentid);
+
+  await sql`
+    INSERT INTO tblscholarsubjects
+    (
+      enrollmentid,
+      academicyear,
+      semester,
+      subjectname,
+      subjectcode,
+      units,
+      scholarid
+    )
+    VALUES
+    (
+      ${enrollmentid},
+      ${item.year},
+      ${item.sem},
+      ${item.subject},
+      ${item.subjectcode},
+      ${Number(item.units) || 0},
+      ${item.StudentID}
+    )
+  `;
+}
+
+return res.status(200).json({
+  success: true,
+  enrollmentids: generatedIds,
+  message: "Subjects submitted successfully.",
+});
+
   } catch (error) {
-    console.error(error);
+    console.error("Subject Insert Error:", error);
 
     return res.status(500).json({
       success: false,
-      message: String(error),
+      message: "An unexpected error occurred.",
     });
   }
 }

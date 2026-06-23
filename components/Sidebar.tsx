@@ -41,8 +41,8 @@ const Sidebar = () => {
   // Navigation links data to avoid repetition
   const navLinks = [
     { name: "Dashboard", icon: FiHome, path: "/user/dashboard" },
-    // { name: "Grades", icon: FiFileText, path: "/user/grades" },
-    { name: "Encode Subjects", icon: FiEdit, path: "/user/schoolyear" },
+    { name: "Encode Subjects", icon: FiEdit, path: "/user/subjects" },
+    { name: "Grades", icon: FiFileText, path: "/user/grades" },
     { name: "Evaluation", icon: FiFileText, path: "/user/evaluation" },
   ];
 
