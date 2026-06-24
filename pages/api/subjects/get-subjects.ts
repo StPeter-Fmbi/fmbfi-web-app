@@ -41,19 +41,22 @@ export default async function handler(
 
     // Get Subjects
     const subjects = await sql`
-      SELECT
-        enrollmentid,
-        academicyear,
-        semester,
-        subjectcode,
-        subjectname,
-        units
-      FROM tblscholarsubjects
-      WHERE scholarid = ${student.scholardid}
-      ORDER BY academicyear DESC,
-               semester,
-               subjectcode
-    `;
+    SELECT
+    enrollmentid,
+    academicyear,
+    semester,
+    subjectcode,
+    subjectname,
+    units
+  FROM tblscholarsubjects
+  WHERE scholarid = ${student.scholardid}
+    AND finalgrade IS NULL
+    AND "IsActive" = 0
+  ORDER BY
+    academicyear DESC,
+    semester,
+    subjectcode
+`;
 
     return res.status(200).json({
       success: true,

@@ -6,86 +6,10 @@ import Sidebar from "../../components/Sidebar";
 import Footer from "@/components/Footer";
 import { Student } from "@/types/student";
 import StudentHeader from "@/components/StudentHeader";
+import { useStudent } from "@/hooks/useStudent";
 
 const StudentProfile = () => {
-  const { data: session, status } = useSession({ required: true });
-  const router = useRouter();
-
-  const [student, setStudent] = useState<Student | null>(null);
-  const [schoolName, setSchoolName] = useState("");
-  const [error, setError] = useState("");
-  const [loadingData, setLoadingData] = useState(true);
-
-  const fetchSchoolInfo = async (email: string) => {
-    try {
-      const res = await fetch(
-        `/api/student/getSchool?email=${encodeURIComponent(email)}`,
-      );
-
-      if (!res.ok) throw new Error("Failed to load school info");
-
-      const data = await res.json();
-      setSchoolName(data.schoolname || "");
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.role !== "User") {
-      router.replace("/login");
-    }
-  }, [status, session, router]);
-
-  useEffect(() => {
-    if (status !== "authenticated") return;
-    if (!session?.user?.email) return;
-
-    const fetchStudentAndSchool = async () => {
-      try {
-        setLoadingData(true);
-
-        const studentRes = await fetch(
-          `/api/student/student-by-email?email=${encodeURIComponent(
-            session.user.email,
-          )}`,
-        );
-
-        if (!studentRes.ok) throw new Error("Failed to fetch student data");
-
-        const studentData: Student = await studentRes.json();
-        setStudent(studentData);
-
-        const schoolRes = await fetch(
-          `/api/getSchool?email=${encodeURIComponent(studentData.email)}`,
-        );
-
-        if (!schoolRes.ok) throw new Error("Failed to load school info");
-
-        const schoolData = await schoolRes.json();
-
-        if (schoolData.schoolname) {
-          setSchoolName(schoolData.schoolname);
-        }
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Failed to fetch data");
-      } finally {
-        setLoadingData(false);
-      }
-    };
-
-    fetchStudentAndSchool();
-  }, [session, status]);
-
-  useEffect(() => {
-    if (student) {
-      fetchSchoolInfo(student.email);
-    }
-  }, [student]);
-
-  // ✅ FIX: ONLY depend on loadingData + auth status
-  const isLoading = status === "loading" || loadingData;
+  const { student, schoolName, image, error, isLoading } = useStudent();
 
   return (
     <>
@@ -95,16 +19,13 @@ const StudentProfile = () => {
 
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar />
+        
 
         {/* MAIN */}
         <div className="flex-1 w-full xl:ml-64 pt-20 md:pt-24 p-3 sm:p-4 md:p-6 font-body overflow-x-hidden">
           {/* HEADER (only when ready) */}
           {student && (
-            <StudentHeader
-              student={student}
-              image={session?.user?.image}
-              schoolName={schoolName}
-            />
+            <StudentHeader student={student} schoolName={schoolName} image={image} />
           )}
 
           {/* LOADING (NO BUG NOW) */}
@@ -118,6 +39,7 @@ const StudentProfile = () => {
               </div>
             </div>
           )}
+          
 
           {/* ERROR */}
           {error && <p className="text-red-500 p-4">{error}</p>}

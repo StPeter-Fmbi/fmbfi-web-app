@@ -23,30 +23,23 @@ export default async function handler(
     }
 
     await sql.transaction(
-      body.map(
-        (item: any) =>
-          sql`
-          INSERT INTO "TblGrades"
-          (
-            "StudentId",
-            "Subject",
-            "SubjectCode",
-            "Grade"
-          )
-          VALUES
-          (
-            ${item.StudentId},
-            ${item.subject},
-            ${item.subjectcode},
-            ${item.grade}
-          )
+      body.flatMap((item: any) => [
+
+        // Update Scholar Subject
+        sql`
+          UPDATE "tblscholarsubjects"
+          SET
+            "finalgrade" = ${item.grade}
+          WHERE
+            "scholarid" = ${item.StudentId}
+            AND "subjectcode" = ${item.SubjectCode}
         `,
-      ),
+      ]),
     );
 
     return res.status(200).json({
       success: true,
-      message: "Inserted successfully",
+      message: "Grades submitted successfully",
     });
   } catch (error) {
     console.error(error);

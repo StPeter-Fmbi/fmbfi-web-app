@@ -1,10 +1,9 @@
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
 import Head from "next/head";
-import { Student } from "@/types/student";
+import { useState, useEffect } from "react";
 import StudentHeader from "@/components/StudentHeader";
+import { useStudent } from "@/hooks/useStudent";
 
 interface GradeEntry {
   subject: string;
@@ -21,75 +20,84 @@ interface ISubject {
 }
 
 const GradesSection = () => {
-  const { data: session, status } = useSession({ required: true });
+  const { student, schoolName, image, error, isLoading } = useStudent();
 
-  const [student, setStudent] = useState<Student | null>(null);
-  const [schoolName, setSchoolName] = useState("");
   const [subjects, setSubjects] = useState<ISubject[]>([]);
+  const [formError, setFormError] = useState("");
+
   const [gradeEntries, setGradeEntries] = useState<GradeEntry[]>([
-    { subject: "", grade: "" },
+    {
+      subject: "",
+      grade: "",
+    },
   ]);
-  const [error, setError] = useState("");
-  const [loadingData, setLoadingData] = useState(true);
+
+  const [grades, setGrades] = useState<Record<string, string>>({});
+
+  const availableSubjects = (currentIndex: number) => {
+    const selectedSubjects = gradeEntries
+      .filter((_, i) => i !== currentIndex)
+      .map((g) => g.subject)
+      .filter(Boolean);
+
+    return subjects.filter((s) => !selectedSubjects.includes(s.subjectname));
+  };
+
+  const handleAddRow = () => {
+    const hasIncompleteRow = gradeEntries.some(
+      (entry) => !entry.subject.trim() || !entry.grade.trim(),
+    );
+
+    if (hasIncompleteRow) {
+      setFormError(
+        "Please complete the current subject and grade before adding another row.",
+      );
+      return;
+    }
+
+    setFormError("");
+
+    setGradeEntries([
+      ...gradeEntries,
+      {
+        subject: "",
+        grade: "",
+      },
+    ]);
+  };
 
   useEffect(() => {
-    if (status !== "authenticated") return;
-    if (!session?.user?.email) return;
+    if (!student?.email) return;
 
-    let mounted = true;
-
-    const fetchStudentAndSchool = async () => {
+    const fetchSubjects = async () => {
       try {
-        setLoadingData(true);
+        const url = `/api/subjects/get-subjects?email=${encodeURIComponent(
+          student.email,
+        )}`;
 
-        const studentRes = await fetch(
-          `/api/student/student-by-email?email=${encodeURIComponent(session.user.email)}`,
-        );
+        console.log("Fetching:", url);
 
-        if (!studentRes.ok) throw new Error("Failed to fetch student data");
+        const res = await fetch(url);
 
-        const studentData: Student = await studentRes.json();
-        if (!mounted) return;
-        setStudent(studentData);
+        console.log("Status:", res.status);
 
-        const schoolRes = await fetch(
-          `/api/getSchool?email=${encodeURIComponent(studentData.email)}`,
-        );
+        const data = await res.json();
 
-        if (!schoolRes.ok) throw new Error("Failed to load school info");
+        console.log("Response:", data);
 
-        const schoolData = await schoolRes.json();
-        if (!mounted) return;
-
-        if (schoolData.schoolname) setSchoolName(schoolData.schoolname);
-
-        const subjectRes = await fetch(
-          `/api/subjects/get-subjects?email=${encodeURIComponent(session.user.email)}`,
-        );
-
-        if (!subjectRes.ok) {
-          throw new Error("Failed to load subjects");
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to load subjects");
         }
 
-        const subjectData = await subjectRes.json();
-
-        if (!mounted) return;
-
-        setSubjects(subjectData.subjects || []);
+        setSubjects(data.subjects || []);
       } catch (err: any) {
         console.error(err);
-        if (mounted) setError(err.message || "Failed to fetch data");
-      } finally {
-        if (mounted) setLoadingData(false);
+        setFormError(err.message || "Failed to load subjects");
       }
     };
 
-    fetchStudentAndSchool();
-
-    return () => {
-      mounted = false;
-    };
-  }, [session, status]);
+    fetchSubjects();
+  }, [student]);
 
   const handleChange = (
     index: number,
@@ -98,49 +106,42 @@ const GradesSection = () => {
   ) => {
     const updated = [...gradeEntries];
     updated[index][field] = value;
+
     setGradeEntries(updated);
-  };
 
-  const availableSubjects = (currentIndex: number) => {
-    const selectedSubjects = gradeEntries
-      .filter((_, i) => i !== currentIndex)
-      .map((g) => g.subject);
-
-    return subjects.filter((s) => !selectedSubjects.includes(s.subjectname));
+    if (formError) {
+      setFormError("");
+    }
   };
 
   const handleSubmit = async () => {
     if (!student) return;
 
-    const filled = gradeEntries.filter(
-      (e) => e.subject.trim() && e.grade.trim(),
-    );
+    const payload = subjects
+      .filter((s) => grades[s.enrollmentid]?.trim())
+      .map((s) => ({
+        StudentId: student.scholardid,
+        EnrollmentId: s.enrollmentid,
+        SubjectName: s.subjectname,
+        SubjectCode: s.subjectcode,
+        grade: Number(grades[s.enrollmentid]),
+      }));
 
-    if (!filled.length) {
-      setError("Please enter at least one subject and grade.");
+    if (!payload.length) {
+      setFormError("Please enter at least one grade.");
       return;
     }
 
-    const invalidGrade = filled.some(
-      (x) =>
-        Number(x.grade) < 0 || Number(x.grade) > 100 || isNaN(Number(x.grade)),
+    const invalidGrade = payload.some(
+      (x) => x.grade < 1 || x.grade > 5 || isNaN(x.grade),
     );
 
     if (invalidGrade) {
-      setError("Grade must be between 0 and 100.");
+      setFormError("Grade must be between 1.00 and 5.00.");
       return;
     }
 
     try {
-      const payload = filled.map((entry) => ({
-        StudentId: student.scholardid,
-        SubjectName: entry.subject,
-        SubjectCode:
-          subjects.find((s) => s.subjectname === entry.subject)?.subjectcode ||
-          "",
-        grade: Number(entry.grade),
-      }));
-
       const res = await fetch("/api/grades/add-grades", {
         method: "POST",
         headers: {
@@ -155,17 +156,14 @@ const GradesSection = () => {
         throw new Error(data.message || "Failed to submit grades");
       }
 
-      setError("");
-      setGradeEntries([{ subject: "", grade: "" }]);
+      setFormError("");
+      setGrades({});
 
       alert("Grades submitted successfully!");
     } catch (err: any) {
-      setError(err.message || "Failed to submit grades");
+      setFormError(err.message || "Failed to submit grades");
     }
   };
-
-  const isInitialLoading = status === "loading" || (loadingData && !student);
-
   return (
     <>
       <Head>
@@ -176,17 +174,15 @@ const GradesSection = () => {
         <Sidebar />
 
         <div className="flex-1 w-full xl:ml-64 pt-20 md:pt-24 p-3 sm:p-4 md:p-6 font-body overflow-x-hidden">
-          {/* HEADER */}
           {student && (
             <StudentHeader
               student={student}
-              image={session?.user?.image}
               schoolName={schoolName}
+              image={image}
             />
           )}
 
-          {/* LOADING */}
-          {isInitialLoading && (
+          {isLoading && (
             <div className="bg-white border rounded-lg p-4 sm:p-6 animate-pulse mb-6">
               <div className="h-6 w-40 bg-gray-200 rounded mb-4" />
               <div className="h-4 w-60 bg-gray-200 rounded mb-2" />
@@ -194,25 +190,19 @@ const GradesSection = () => {
             </div>
           )}
 
-          {/* ERROR */}
-          {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
-
-          {/* CONTENT */}
-          {!isInitialLoading && student && (
+          {!isLoading && student && (
             <>
-              {/* GPA */}
+              {/* ================= 1. ACADEMIC PERFORMANCE ================= */}
               <section className="bg-white border rounded-lg p-4 sm:p-6 mb-6">
                 <h2 className="text-lg font-semibold text-[#d12f27] mb-3">
                   Academic Performance
                 </h2>
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  {/* <div className="text-4xl sm:text-5xl font-extrabold text-[#d12f27]">
-                    {student.gpa ? student.gpa.toFixed(1) : "—"}
-                  </div> */}
                   <div className="text-4xl sm:text-5xl font-extrabold text-[#d12f27]">
-                    {"—"}
+                    —
                   </div>
+
                   <div className="text-sm text-gray-600">
                     <p className="font-medium">Current GPA</p>
                     <p>Based on submitted grades</p>
@@ -220,160 +210,111 @@ const GradesSection = () => {
                 </div>
               </section>
 
-              {/* GRADES */}
-              <section className="bg-white border rounded-lg p-4 sm:p-6">
+              {/* ================= 2. SUBJECT INFORMATION ================= */}
+              <section className="bg-white border rounded-lg p-4 sm:p-6 mb-6">
                 <h2 className="text-lg font-semibold text-[#d12f27] mb-4">
-                  Grades
+                  Subject Information
                 </h2>
 
-                {/* ================= MOBILE CARDS ================= */}
-                <div className="block md:hidden space-y-3">
-                  {gradeEntries.map((entry, index) => (
-                    <div
-                      key={index}
-                      className="border rounded-lg p-3 space-y-2"
-                    >
-                      <select
-                        value={entry.subject}
-                        onChange={(e) =>
-                          handleChange(index, "subject", e.target.value)
-                        }
-                        className="w-full border rounded px-3 py-2"
-                      >
-                        <option value="">Select subject</option>
-                        {subjects.map((s) => (
-                          <option key={s.subjectcode} value={s.subjectname}>
-                            {s.subjectname}
-                          </option>
-                        ))}
-                      </select>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-3 border rounded-md bg-gray-50">
+                    <p className="text-sm text-gray-500">Total Subjects</p>
+                    <p className="text-lg font-semibold">{subjects.length}</p>
+                  </div>
 
-                      <input
-                        value={
-                          subjects.find((s) => s.subjectname === entry.subject)
-                            ?.subjectcode || ""
-                        }
-                        disabled
-                        className="w-full border rounded px-3 py-2 bg-gray-100 text-center"
-                      />
-
-                      <input
-                        type="number"
-                        value={entry.grade}
-                        onChange={(e) =>
-                          handleChange(index, "grade", e.target.value)
-                        }
-                        className="w-full border rounded px-3 py-2 text-center"
-                      />
-
-                      {gradeEntries.length > 1 && (
-                        <button
-                          onClick={() =>
-                            setGradeEntries(
-                              gradeEntries.filter((_, i) => i !== index),
-                            )
-                          }
-                          className="text-red-500 text-sm"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                  <div className="p-3 border rounded-md bg-gray-50">
+                    <p className="text-sm text-gray-500">Selected Entries</p>
+                    <p className="text-lg font-semibold">
+                      {gradeEntries.length}
+                    </p>
+                  </div>
                 </div>
+              </section>
 
-                {/* ================= DESKTOP TABLE ================= */}
-                <div className="hidden md:block overflow-x-auto">
-                  <div className="min-w-[600px]">
-                    <div className="grid grid-cols-[1fr_120px_80px_24px] gap-3 text-sm text-gray-400 mb-2">
-                      <span>Subject Description</span>
-                      <span>Subject Code</span>
-                      <span className="text-center">Grade</span>
-                      <span />
+              {/* ================= 3. GRADES ================= */}
+              <section className="bg-white border rounded-lg p-4 sm:p-6 mb-6">
+                <h2 className="text-lg font-semibold text-[#d12f27] mb-4">
+                  Subject List
+                </h2>
+
+                {formError && (
+                  <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {formError}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {subjects.length === 0 ? (
+                    <div className="text-center py-8 border rounded-lg bg-gray-50">
+                      <p className="text-gray-500">
+                        There are no subject encodings available for grade
+                        submission.
+                      </p>
+
+                      <p className="text-sm text-gray-400 mt-1">
+                        Please encode your subjects first before submitting
+                        grades.
+                      </p>
                     </div>
-
-                    <div className="space-y-2">
-                      {gradeEntries.map((entry, index) => (
+                  ) : (
+                    <div className="space-y-3">
+                      {subjects.map((subject) => (
                         <div
-                          key={index}
-                          className="grid grid-cols-[1fr_120px_80px_24px] gap-3 items-center"
+                          key={subject.enrollmentid}
+                          className="flex flex-col md:flex-row md:items-center justify-between border rounded-lg p-3 gap-3"
                         >
-                          <select
-                            value={entry.subject}
-                            onChange={(e) =>
-                              handleChange(index, "subject", e.target.value)
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                          >
-                            <option value="">--Select subject--</option>
-                            {subjects.map((s) => (
-                              <option key={s.subjectcode} value={s.subjectname}>
-                                {s.subjectname}
-                              </option>
-                            ))}
-                          </select>
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {subject.subjectname}
+                            </p>
 
-                          <input
-                            type="text"
-                            value={
-                              entry.subject
-                                ? subjects.find(
-                                    (s) => s.subjectname === entry.subject,
-                                  )?.subjectcode || ""
-                                : ""
-                            }
-                            disabled
-                            className="w-full px-3 py-2 text-center bg-gray-100 border rounded-md"
-                          />
+                            <p className="text-sm text-gray-500">
+                              {subject.subjectcode} • {subject.units} Units
+                            </p>
+                          </div>
 
                           <input
                             type="number"
-                            value={entry.grade}
+                            step="0.25"
+                            min="1"
+                            max="5"
+                            value={grades[subject.enrollmentid] || ""}
                             onChange={(e) =>
-                              handleChange(index, "grade", e.target.value)
+                              setGrades((prev) => ({
+                                ...prev,
+                                [subject.enrollmentid]: e.target.value,
+                              }))
                             }
-                            className="w-full px-3 py-2 text-center border rounded-md"
+                            className="w-full md:w-32 border rounded-md px-3 py-2 text-center"
+                            placeholder="1.00"
                           />
-
-                          {gradeEntries.length > 1 && (
-                            <button
-                              onClick={() =>
-                                setGradeEntries(
-                                  gradeEntries.filter((_, i) => i !== index),
-                                )
-                              }
-                              className="text-gray-400 hover:text-red-500"
-                            >
-                              ×
-                            </button>
-                          )}
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
                 </div>
+              </section>
 
-                {/* ACTIONS */}
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-3 mt-4">
-                  <button
-                    onClick={() =>
-                      setGradeEntries([
-                        ...gradeEntries,
-                        { subject: "", grade: "" },
-                      ])
-                    }
-                    className="text-sm text-gray-500 hover:text-red-500"
-                  >
-                    + Add
-                  </button>
+              {/* ================= 4. ACTIONS (SEPARATE SECTION) ================= */}
+              <section className="flex justify-between items-center">
+                <button
+                  onClick={handleAddRow}
+                  className="border px-4 py-2 rounded bg-gray-50 hover:bg-gray-100"
+                >
+                  + Add New Subject Row
+                </button>
 
-                  <button
-                    onClick={handleSubmit}
-                    className="bg-[#d12f27] text-white px-4 py-2 rounded text-sm hover:bg-red-700"
-                  >
-                    Submit
-                  </button>
-                </div>
+                <button
+                  onClick={handleSubmit}
+                  disabled={subjects.length === 0}
+                  className={`px-6 py-2 rounded text-white ${
+                    subjects.length === 0
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#d12f27] hover:bg-[#b72821]"
+                  }`}
+                >
+                  Submit Grades
+                </button>
               </section>
             </>
           )}
