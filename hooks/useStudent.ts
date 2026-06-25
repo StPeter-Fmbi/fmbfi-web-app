@@ -50,8 +50,6 @@ export function useStudent() {
       }
     };
 
-    
-
     fetchData();
   }, [session, status]);
 
@@ -64,6 +62,4 @@ export function useStudent() {
     error,
     isLoading: status === "loading" || loadingData,
   };
-
-  
 }

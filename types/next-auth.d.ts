@@ -8,9 +8,11 @@ declare module "next-auth" {
       email: string;
       role: string;
       image: string;
+      isPasswordChanged: boolean;
     };
   }
   interface User {
     role: string;
+    isPasswordChanged: boolean;
   }
 }

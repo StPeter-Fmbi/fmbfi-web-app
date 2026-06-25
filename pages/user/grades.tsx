@@ -4,6 +4,7 @@ import Head from "next/head";
 import { useState, useEffect } from "react";
 import StudentHeader from "@/components/StudentHeader";
 import { useStudent } from "@/hooks/useStudent";
+import { FaSpinner } from "react-icons/fa";
 
 interface GradeEntry {
   subject: string;
@@ -24,6 +25,8 @@ const GradesSection = () => {
 
   const [subjects, setSubjects] = useState<ISubject[]>([]);
   const [formError, setFormError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [gradeEntries, setGradeEntries] = useState<GradeEntry[]>([
     {
@@ -108,26 +111,50 @@ const GradesSection = () => {
     fetchSubjects();
   }, [student]);
 
+  const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFile = (selectedFile: File) => {
+    setFile(selectedFile);
+    setFileError("");
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else {
+      setDragActive(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-
-    if (!selectedFile) return;
-
-    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-
-    if (!allowedTypes.includes(selectedFile.type)) {
-      setFileError("Only PDF, JPG, and PNG files are allowed.");
-      return;
+    if (e.target.files?.[0]) {
+      handleFile(e.target.files[0]);
     }
-
-    setFileError("");
-    setFile(selectedFile);
   };
 
   const handleSubmit = async () => {
+    if (!file) {
+      setFormError("Please upload your signed grade sheet.");
+      return;
+    }
+
     if (!student) return;
 
     const payload = subjects
@@ -155,7 +182,52 @@ const GradesSection = () => {
     }
 
     try {
-      const res = await fetch("/api/grades/add-grades", {
+      setIsSubmitting(true);
+      setIsUploading(true);
+      setFormError("");
+
+      // Generate Google Drive filename
+      const ext = file.name.split(".").pop();
+
+      const fileName = `${student.last_name}, ${student.first_name} - ${student.batch}.${ext}`;
+
+      // Convert file to Base64
+      const fileContent = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(",")[1];
+          resolve(base64);
+        };
+
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      // Upload to Google Drive
+      // 1. Upload supporting document
+      const uploadRes = await fetch("/api/grades/upload-grades", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentId: student.scholardid,
+          fileName,
+          mimeType: file.type,
+          fileContent,
+          lastName: student.last_name, // <-- THIS
+        }),
+      });
+
+      const uploadResult = await uploadRes.json();
+
+      if (!uploadRes.ok) {
+        throw new Error(uploadResult.message);
+      }
+
+      // 2. Submit grades
+      const gradeRes = await fetch("/api/grades/add-grades", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -163,18 +235,31 @@ const GradesSection = () => {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const gradeResult = await gradeRes.json();
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to submit grades");
+      if (!gradeRes.ok) {
+        throw new Error(gradeResult.message);
       }
 
       setFormError("");
       setGrades({});
+      setFile(null);
 
-      alert("Grades submitted successfully!");
+      setShowSuccess(true);
+
+      // Refresh the page after 3 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+
+      setGrades({});
+      setFile(null);
+      setShowSuccess(true);
     } catch (err: any) {
-      setFormError(err.message || "Failed to submit grades");
+      setFormError(err.message || "Failed to submit grades.");
+    } finally {
+      setIsUploading(false);
+      setIsSubmitting(false);
     }
   };
   return (
@@ -200,6 +285,66 @@ const GradesSection = () => {
               <div className="h-6 w-40 bg-gray-200 rounded mb-4" />
               <div className="h-4 w-60 bg-gray-200 rounded mb-2" />
               <div className="h-4 w-52 bg-gray-200 rounded" />
+            </div>
+          )}
+
+          {isSubmitting && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl shadow-2xl px-8 py-8 flex flex-col items-center gap-4 min-w-[340px]">
+                <FaSpinner className="animate-spin text-[#d12f27] text-5xl" />
+
+                <h3 className="text-xl font-semibold text-gray-800">
+                  Submitting Grades...
+                </h3>
+
+                <p className="text-gray-500 text-center">
+                  Please wait while we upload your supporting document and
+                  submit your grades for evaluation.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {showSuccess && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl shadow-2xl px-8 py-8 flex flex-col items-center gap-4 min-w-[360px]">
+                <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
+                  <svg
+                    className="w-12 h-12 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+
+                <h3 className="text-2xl font-bold text-green-600">
+                  Submission Successful!
+                </h3>
+
+                <p className="text-gray-600 text-center">
+                  Your grades have been submitted successfully.
+                </p>
+
+                <p className="text-gray-500 text-center text-sm">
+                  Your supporting document has also been uploaded to the
+                  scholarship records. Your submission is now pending
+                  administrator evaluation.
+                </p>
+
+                <button
+                  onClick={() => setShowSuccess(false)}
+                  className="mt-3 px-6 py-2 bg-[#d12f27] hover:bg-[#b72821] text-white rounded-lg transition"
+                >
+                  OK
+                </button>
+              </div>
             </div>
           )}
 
@@ -389,46 +534,95 @@ const GradesSection = () => {
                 </h2>
 
                 <p className="text-sm text-gray-500 mb-4">
-                  Upload signed grade sheet (PDF or image format).
+                  Upload signed grade sheet (PDF, JPG, PNG)
                 </p>
 
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-600 border border-gray-300 rounded-lg p-2 cursor-pointer"
-                />
+                <div
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-xl p-10 text-center transition-all duration-200
+  ${
+    dragActive
+      ? "border-red-500 bg-red-50 scale-[1.01]"
+      : "border-gray-300 hover:border-red-300"
+  }`}
+                >
+                  <input
+                    type="file"
+                    id="gradeUpload"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+
+                  <label
+                    htmlFor="gradeUpload"
+                    className="cursor-pointer flex flex-col items-center"
+                  >
+                    <div className="text-6xl mb-3">📂</div>
+
+                    <p className="font-semibold text-gray-700">
+                      Drag & Drop Grade Sheet
+                    </p>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      PDF, JPG, JPEG or PNG
+                    </p>
+                  </label>
+                </div>
 
                 {fileError && (
-                  <p className="text-red-500 text-sm mt-2">{fileError}</p>
+                  <p className="text-red-500 text-sm mt-3">{fileError}</p>
                 )}
 
                 {file && (
-                  <p className="text-green-600 text-sm mt-2">
-                    Selected file: {file.name}
-                  </p>
+                  <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-green-700">
+                          Ready to Upload
+                        </p>
+
+                        <p className="text-sm text-green-600">{file.name}</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setFile(null)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
                 )}
               </section>
 
               {/* ================= 4. ACTIONS (SEPARATE SECTION) ================= */}
               <section className="flex justify-end">
                 <button
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      "Are you sure you want to submit your grades? Once submitted, changes may require administrator approval.",
-                    );
-                    if (confirmed) {
-                      handleSubmit();
-                    }
-                  }}
-                  disabled={subjects.length === 0}
-                  className={`px-6 py-2 border rounded-xl text-white ${
-                    subjects.length === 0
+                  onClick={handleSubmit}
+                  disabled={
+                    subjects.length === 0 || isSubmitting || showSuccess
+                  }
+                  className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all ${
+                    subjects.length === 0 || isSubmitting || showSuccess
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#d12f27] hover:bg-[#b72821]"
+                      : "bg-[#d12f27] hover:bg-[#b72821] shadow-md hover:shadow-lg"
                   }`}
                 >
-                  Submit Subjects for Evaluation
+                  {isSubmitting ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Uploading Grades...
+                    </>
+                  ) : showSuccess ? (
+                    <>✓ Grades Submitted</>
+                  ) : (
+                    "Submit Subjects for Evaluation"
+                  )}
                 </button>
               </section>
             </>

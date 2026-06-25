@@ -1,11 +1,15 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+
+    import bcrypt from "bcryptjs";
 import { sql } from "@/lib/db";
 
 // Shared function to get user from DB by email
 async function getUserByEmail(email: string) {
-  const usersResult = await sql`SELECT * FROM tblusers WHERE email = ${email} LIMIT 1`;
+  const usersResult =
+    await sql`SELECT * FROM tblusers WHERE email = ${email} LIMIT 1`;
+
   const user = usersResult[0];
   if (!user) return null;
 
@@ -14,6 +18,7 @@ async function getUserByEmail(email: string) {
     name: user.username,
     email: user.email,
     role: user.role,
+    isPasswordChanged: Boolean(user.isPasswordChanged),
   };
 }
 
@@ -22,27 +27,65 @@ const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
 
   providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        const { email, password } = credentials ?? {};
-        if (!email || !password) return null;
 
-        const user = await getUserByEmail(email);
-        if (!user) return null;
+CredentialsProvider({
+  name: "Credentials",
+  credentials: {
+    email: { label: "Email", type: "email" },
+    password: { label: "Password", type: "password" },
+  },
 
-        // Verify password (plain text here, consider hashing in production)
-        const usersResult = await sql`SELECT password FROM tblusers WHERE email = ${email} LIMIT 1`;
-        const dbPassword = usersResult[0]?.password;
-        if (!dbPassword || dbPassword !== password) return null;
+  async authorize(credentials) {
+    const { email, password } = credentials ?? {};
 
-        return user;
-      },
-    }),
+    if (!email || !password) {
+      return null;
+    }
+
+    const usersResult = await sql`
+      SELECT *
+      FROM tblusers
+      WHERE email = ${email}
+      LIMIT 1
+    `;
+
+    const user = usersResult[0];
+
+    if (!user) {
+      return null;
+    }
+
+    let isValidPassword = false;
+
+    // Legacy accounts (plaintext password)
+    if (
+      user.isPasswordChanged === 0 ||
+      user.isPasswordChanged === false ||
+      user.isPasswordChanged === null
+    ) {
+      isValidPassword = user.password === password;
+    }
+    // Updated accounts (bcrypt password)
+    else {
+      isValidPassword = await bcrypt.compare(
+        password,
+        user.password
+      );
+    }
+
+    if (!isValidPassword) {
+      return null;
+    }
+
+    return {
+      id: String(user.scholarid),
+      name: user.username,
+      email: user.email,
+      role: user.role || "User",
+      isPasswordChanged: Boolean(user.isPasswordChanged),
+    };
+  },
+}),
 
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -73,15 +116,27 @@ const authOptions: NextAuthOptions = {
     },
 
     jwt: async ({ token, user }) => {
-      if (user) token.role = user.role;
-      token.exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
-      return token;
-    },
+    if (user) {
+      token.role = user.role;
+      token.isPasswordChanged = user.isPasswordChanged;
+    }
+
+    console.log("JWT Token:", token);
+
+    return token;
+  },
 
     session: async ({ session, token }) => {
-      if (token) session.user = { ...session.user, role: token.role as string };
-      return session;
-    },
+  if (token) {
+    session.user = {
+      ...session.user,
+      role: token.role as string,
+      isPasswordChanged: token.isPasswordChanged as boolean,
+    };
+  }
+
+  return session;
+},
 
     redirect: async ({ baseUrl }) => baseUrl,
   },

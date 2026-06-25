@@ -2,7 +2,12 @@ import { signIn, useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { FaExclamationCircle, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaExclamationCircle,
+  FaEye,
+  FaEyeSlash,
+  FaSpinner,
+} from "react-icons/fa";
 
 const LoginSection = () => {
   const { data: session, status } = useSession();
@@ -15,17 +20,20 @@ const LoginSection = () => {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
+    setIsLoggingIn(true);
 
-    // Use NextAuth signIn with Credentials provider
     const result = await signIn("credentials", {
       redirect: false,
       email,
       password: loginPassword,
     });
+
+    setIsLoggingIn(false);
 
     if (result?.error) {
       const errorMap: Record<string, string> = {
@@ -40,20 +48,20 @@ const LoginSection = () => {
     }
 
     if (result?.ok) {
-      // Get session to check user role
       const session = await fetch("/api/auth/session").then((res) =>
         res.json(),
       );
 
       const userRole = session?.user?.role || "User";
+      const isPasswordChanged = session?.user?.isPasswordChanged;
 
-      if (userRole === "Admin") {
-        router.push("/admin/dashboard");
-      } else if (userRole === "User") {
-        router.push("/user/dashboard");
-      } else {
-        router.push("/"); // fallback
+      if (!isPasswordChanged) {
+        router.push("/user/change-password");
+        return;
       }
+
+      if (userRole === "Admin") router.push("/admin/dashboard");
+      else router.push("/user/dashboard");
     }
   };
 
@@ -121,18 +129,60 @@ const LoginSection = () => {
             backgroundPosition: "center",
           }}
         ></div>
-        <div className="absolute inset-0 bg-black opacity-40"></div>
+        <div className="absolute inset-0 bg-black opacity-60"></div>
 
-        <div className="bg-white p-6 sm:p-8 md:p-12 rounded-lg shadow-xl w-[90%] sm:w-[500px] md:w-[600px] relative z-10 mt-12 sm:mt-16 md:mt-20">
-          <div
-            className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mb-6 cursor-pointer"
-            onClick={() => router.push("/")}
-          >
-            <img src="/images/logo.png" alt="Logo" className="w-24 h-auto" />
+        <div className="backdrop-blur-lg bg-white/95 rounded-3xl shadow-2xl overflow-hidden border border-white/30 w-[90%] sm:w-[500px] md:w-[600px] relative z-10">
+          <div className="relative bg-gradient-to-r from-red-600 to-red-700 px-8 py-8 text-center">
+            <div className="absolute inset-0 opacity-50">
+              <div
+                className="h-full w-full bg-cover bg-center"
+                style={{
+                  backgroundImage: 'url("/images/FMBFI.JPG")',
+                }}
+              />
+            </div>
+
+            <div className="relative">
+              <div
+                className="mx-auto mb-4 h-20 w-20 rounded-full bg-white shadow-lg flex items-center justify-center cursor-pointer"
+                onClick={() => router.push("/")}
+              >
+                <img
+                  src="/images/logo.png"
+                  alt="FMBFI Logo"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+
+              <h1 className="text-3xl font-bold text-white font-title">
+                Welcome to the Scholar Portal
+              </h1>
+
+              <p className="text-red-100 text-sm mt-2">
+                Sign in to manage your scholarship information and academic
+                records.
+              </p>
+            </div>
           </div>
 
+          {isLoggingIn && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-4 min-w-[320px]">
+                <FaSpinner className="animate-spin text-red-600 text-5xl" />
+
+                <h3 className="text-lg font-semibold text-gray-700">
+                  Signing In...
+                </h3>
+
+                <p className="text-gray-500 text-center">
+                  Please wait while we verify your account.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Tab Navigation */}
-          <div className="flex justify-center space-x-6 sm:space-x-8 border-b pb-6 mb-8 pt-8 sm:pt-10 md:pt-12">
+          <div className="flex justify-center gap-8 border-b border-gray-200 pt-8 pb-4">
             <button
               aria-selected={activeTab === "login" ? "true" : "false"}
               className={`text-xl sm:text-2xl font-extrabold ${
@@ -140,7 +190,10 @@ const LoginSection = () => {
                   ? "border-b-2 border-[#d12f27] text-[#d12f27]"
                   : "text-gray-600"
               } hover:text-[#d12f27] focus:outline-none font-body`}
-              onClick={() => setActiveTab("login")}
+              onClick={() => {
+                setActiveTab("login");
+                setErrorMessage(""); // ✅ clear error when going back
+              }}
             >
               Log-in
             </button>
@@ -152,9 +205,12 @@ const LoginSection = () => {
               className={`text-xl sm:text-2xl font-extrabold ${
                 activeTab === "register"
                   ? "border-b-2 border-[#d12f27] text-[#d12f27]"
-                  : "text-gray-600"
+                  : "text-gray-400"
               } hover:text-[#d12f27] focus:outline-none font-body`}
-              onClick={() => setActiveTab("register")}
+              onClick={() => {
+                setActiveTab("register");
+                // setErrorMessage("Registration is currently disabled.");
+              }}
             >
               Register
             </button>
@@ -162,169 +218,141 @@ const LoginSection = () => {
 
           {/* Login Form */}
           {activeTab === "login" ? (
-            <form onSubmit={handleLoginSubmit} className="space-y-6">
-              {errorMessage && (
-                <div className="bg-red-500 text-white p-4 rounded-md flex items-center gap-2">
-                  <FaExclamationCircle className="text-lg flex-shrink-0" />
-                  <span>{errorMessage}</span>
+            <div className="p-8">
+              <form onSubmit={handleLoginSubmit} className="space-y-6">
+                {errorMessage && (
+                  <div className="bg-red-500 text-white p-4 rounded-md flex items-center gap-2">
+                    <FaExclamationCircle className="text-lg flex-shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                <div>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    name="email"
+                    id="email"
+                    className="w-full shadow-md border border-gray-300 rounded-lg p-4 focus:ring-red-900 focus:border-red-900"
+                    placeholder="Email Address"
+                    required
+                  />
                 </div>
-              )}
 
-              <div className="flex items-center justify-center">
-                <label htmlFor="email" className="sr-only">
-                  Email
-                </label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                  name="email"
-                  id="email"
-                  className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4"
-                  placeholder="Email Address"
-                  required
-                />
-              </div>
+                <div className="relative">
+                  <input
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    type={showLoginPassword ? "text" : "password"}
+                    name="password"
+                    id="password"
+                    autoComplete="current-password"
+                    className="w-full shadow-md border border-gray-300 rounded-lg p-4 pr-14 focus:ring-red-900 focus:border-red-900 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                    placeholder="Password"
+                    required
+                  />
 
-              <div className="flex items-center justify-center relative">
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
-
-                <input
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  type={showLoginPassword ? "text" : "password"}
-                  name="password"
-                  id="password"
-                  autoComplete="current-password"
-                  className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4 pr-14
-    [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
-                  placeholder="Password"
-                  required
-                />
-
-                <div className="absolute inset-y-0 right-4 flex items-center">
                   <button
                     type="button"
-                    className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     onClick={() => setShowLoginPassword(!showLoginPassword)}
                   >
                     {showLoginPassword ? (
-                      <FaEyeSlash size={24} />
+                      <FaEyeSlash size={20} />
                     ) : (
-                      <FaEye size={24} />
+                      <FaEye size={20} />
                     )}
                   </button>
                 </div>
-              </div>
 
-              <div className="flex flex-col items-center space-y-4 font-body">
-                {/* Regular Log-in button */}
-                <div className="flex items-center justify-center w-full max-w-lg">
-                  <button
-                    type="submit"
-                    className="flex items-center justify-center w-full rounded-full shadow py-2 px-6 text-lg sm:text-xl lg:text-2xl text-white bg-[#d12f27] hover:bg-transparent hover:text-[#d12f27] hover:border-[#d12f27] border-4 border-transparent transition-colors duration-300 font-heading"
-                  >
-                    Log-in
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-[#d12f27] hover:bg-[#b72821] text-white py-3 rounded-lg font-semibold transition"
+                >
+                  Log-in
+                </button>
 
-                {/* --or-- separator */}
-                <div className="flex items-center w-full max-w-lg">
+                <div className="flex items-center">
                   <hr className="flex-grow border-gray-300" />
-                  <span className="px-4 text-md sm:text-lg lg:text-xl text-[#d12f27]  font-heading">
-                    or
-                  </span>
+                  <span className="px-4 text-[#d12f27] font-medium">or</span>
                   <hr className="flex-grow border-gray-300" />
                 </div>
 
-                {/* Google sign-in button */}
-                <div className="flex items-center justify-center w-full max-w-lg">
-                  <button
-                    type="button"
-                    onClick={() => signIn("google")}
-                    className="flex items-center justify-center w-full rounded-full shadow py-2 px-6 text-lg sm:text-xl lg:text-2xl text-[#d12f27] bg-white border-4 border-[#d12f27] hover:bg-[#d12f27] hover:text-white transition-colors duration-300 font-heading"
-                  >
-                    <img
-                      src="/images/google-icon.svg"
-                      alt="Google"
-                      className="w-6 h-6 mr-4"
-                    />
-                    Sign in with Google
-                  </button>
-                </div>
-              </div>
-            </form>
+                <button
+                  type="button"
+                  onClick={() => signIn("google")}
+                  className="w-full border-2 border-[#d12f27] text-[#d12f27] hover:bg-[#d12f27] hover:text-white py-3 rounded-lg font-semibold transition flex items-center justify-center gap-3"
+                >
+                  <img
+                    src="/images/google-icon.svg"
+                    alt="Google"
+                    className="w-5 h-5"
+                  />
+                  Sign in with Google
+                </button>
+              </form>
+            </div>
           ) : (
             // Register Form
-            <form onSubmit={handleRegisterSubmit} className="space-y-6">
-              {errorMessage && (
-                <div className="bg-red-500 text-white p-4 rounded-md">
-                  {errorMessage}
+            <div className="p-8">
+              <form onSubmit={handleRegisterSubmit} className="space-y-6">
+                {errorMessage && (
+                  <div className="bg-red-500 text-white p-4 rounded-md flex items-center gap-2">
+                    <FaExclamationCircle className="text-lg flex-shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                <div>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    name="email"
+                    id="email"
+                    className="w-full shadow-md border border-gray-300 rounded-lg p-4 focus:ring-red-900 focus:border-red-900"
+                    placeholder="Email Address"
+                    required
+                  />
                 </div>
-              )}
 
-              <div className="flex items-center justify-center">
-                <label htmlFor="email" className="sr-only">
-                  Email
-                </label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                  name="email"
-                  id="email"
-                  className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4"
-                  placeholder="Email Address"
-                  required
-                />
-              </div>
+                <div className="relative">
+                  <input
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    type={showRegisterPassword ? "text" : "password"}
+                    name="password"
+                    id="password"
+                    autoComplete="current-password"
+                    className="w-full shadow-md border border-gray-300 rounded-lg p-4 pr-14 focus:ring-red-900 focus:border-red-900 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                    placeholder="Password"
+                    required
+                  />
 
-              <div className="flex items-center justify-center relative">
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
-
-                <input
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  type={showRegisterPassword ? "text" : "password"}
-                  name="password"
-                  id="password"
-                  autoComplete="current-password"
-                  className="shadow-md focus:ring-red-900 focus:border-red-900 block w-full max-w-lg sm:text-lg lg:text-xl border-gray-300 rounded-md p-4 pr-14
-    [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
-                  placeholder="Password"
-                  required
-                />
-
-                <div className="absolute inset-y-0 right-4 flex items-center">
                   <button
                     type="button"
-                    className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     onClick={() =>
                       setShowRegisterPassword(!showRegisterPassword)
                     }
                   >
                     {showRegisterPassword ? (
-                      <FaEyeSlash size={24} />
+                      <FaEyeSlash size={20} />
                     ) : (
-                      <FaEye size={24} />
+                      <FaEye size={20} />
                     )}
                   </button>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-center">
                 <button
                   type="submit"
-                  className="flex items-center justify-center w-full max-w-lg rounded-full shadow py-2 px-6 text-lg sm:text-xl lg:text-2xl text-white bg-[#d12f27] hover:bg-transparent hover:text-[#d12f27] hover:border-[#d12f27] border-4 border-transparent transition-colors duration-300"
+                  className="w-full bg-[#d12f27] hover:bg-[#b72821] text-white py-3 rounded-lg font-semibold transition"
                 >
                   Register
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           )}
         </div>
       </section>
