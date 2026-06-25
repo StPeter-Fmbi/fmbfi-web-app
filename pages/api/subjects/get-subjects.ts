@@ -50,7 +50,7 @@ export default async function handler(
     units
   FROM tblscholarsubjects
   WHERE scholarid = ${student.scholardid}
-    AND finalgrade IS NULL
+    AND finalgrade IS NULL or finalgrade = 0.00
     AND "IsActive" = 0
   ORDER BY
     academicyear DESC,

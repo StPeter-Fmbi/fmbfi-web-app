@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
@@ -18,6 +18,7 @@ const SchoolSection = () => {
   const { student, schoolName, error, image, isLoading } = useStudent();
 
   const [formError, setFormError] = useState("");
+  const [academicError, setAcademicError] = useState("");
 
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
@@ -75,7 +76,7 @@ const SchoolSection = () => {
     if (!student) return;
 
     if (!selectedYear || !selectedSemester) {
-      setFormError("Please select Year and Semester.");
+      setAcademicError("Please select Academic Year and Semester.");
       return;
     }
 
@@ -134,6 +135,12 @@ const SchoolSection = () => {
       setFormError(err.message || "Failed to submit grades");
     }
   };
+
+  useEffect(() => {
+    if (selectedYear && selectedSemester) {
+      setAcademicError("");
+    }
+  }, [selectedYear, selectedSemester]);
 
   return (
     <>
@@ -240,6 +247,14 @@ const SchoolSection = () => {
                   <h2 className="text-lg font-semibold text-[#d12f27] mb-4">
                     Academic Information Encoding
                   </h2>
+
+                  {academicError && (
+                    <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                      <p className="text-sm font-medium text-red-600">
+                        {academicError}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -402,9 +417,15 @@ const SchoolSection = () => {
                                   gradeEntries.filter((_, i) => i !== index),
                                 )
                               }
-                              className="h-10 w-10 rounded-lg text-red-500 hover:bg-red-50"
+                              className="h-10 px-2 sm:px-0 sm:w-10 rounded-lg text-red-500 hover:bg-red-50 flex items-center justify-center gap-1"
                             >
-                              <FaTrash size={14} />
+                              {/* Icon (hidden on very small screens) */}
+                              <FaTrash className="hidden sm:block" size={14} />
+
+                              {/* Text (shown on small screens) */}
+                              <span className="block sm:hidden text-xs font-medium">
+                                Remove Subject
+                              </span>
                             </button>
                           )}
                         </div>

@@ -27,13 +27,14 @@ export default async function handler(
 
         // Update Scholar Subject
         sql`
-          UPDATE "tblscholarsubjects"
-          SET
-            "finalgrade" = ${item.grade}
-          WHERE
-            "scholarid" = ${item.StudentId}
-            AND "subjectcode" = ${item.SubjectCode}
-        `,
+        UPDATE "tblscholarsubjects"
+        SET
+          "finalgrade" = ${item.grade},
+          "IsActive" = 1
+        WHERE
+          "scholarid" = ${item.StudentId}
+          AND "subjectcode" = ${item.SubjectCode}
+      `
       ]),
     );
 
