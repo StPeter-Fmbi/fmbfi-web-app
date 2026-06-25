@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // `;
 
     const [student] = await sql`
-      SELECT scholardid, last_name, first_name, middle_name, school, email, mobile_no, course, sy, status, batch, year_start
+      SELECT scholardid, last_name, first_name, middle_name, school, email, mobile_no, course, sy, status, batch, year_start, category
       FROM tblscholarsdata
       WHERE email = ${email}
       LIMIT 1

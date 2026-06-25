@@ -7,9 +7,14 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>FMBFI</title>
+        <title>Francisco M. Bautista Foundation Inc.</title>
+
+        <meta
+          name="description"
+          content="Francisco M. Bautista Foundation Inc. Student Portal"
+        />
+
         <link rel="icon" href="/images/logo.png" />
-        <title>Francisco M Bautista Foundation Inc</title>
       </Head>
 
       <SessionProvider session={pageProps.session}>

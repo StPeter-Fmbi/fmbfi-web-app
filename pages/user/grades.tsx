@@ -66,6 +66,15 @@ const GradesSection = () => {
     ]);
   };
 
+  const totalSubjects = subjects.length;
+
+  const encodedSubjects = subjects.filter((subject) =>
+    grades[subject.enrollmentid]?.trim(),
+  ).length;
+
+  const progressPercentage =
+    totalSubjects > 0 ? Math.round((encodedSubjects / totalSubjects) * 100) : 0;
+
   useEffect(() => {
     if (!student?.email) return;
 
@@ -99,19 +108,23 @@ const GradesSection = () => {
     fetchSubjects();
   }, [student]);
 
-  const handleChange = (
-    index: number,
-    field: "subject" | "grade",
-    value: string,
-  ) => {
-    const updated = [...gradeEntries];
-    updated[index][field] = value;
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState("");
 
-    setGradeEntries(updated);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
 
-    if (formError) {
-      setFormError("");
+    if (!selectedFile) return;
+
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setFileError("Only PDF, JPG, and PNG files are allowed.");
+      return;
     }
+
+    setFileError("");
+    setFile(selectedFile);
   };
 
   const handleSubmit = async () => {
@@ -192,42 +205,99 @@ const GradesSection = () => {
 
           {!isLoading && student && (
             <>
-              {/* ================= 1. ACADEMIC PERFORMANCE ================= */}
-              <section className="bg-white border rounded-lg p-4 sm:p-6 mb-6">
-                <h2 className="text-lg font-semibold text-[#d12f27] mb-3">
-                  Academic Performance
-                </h2>
+              {/* ================= 2. SUBJECT INFORMATION ================= */}
+              <section className="bg-white border rounded-xl p-4 sm:p-6 mb-6 shadow-sm">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                  <h2 className="text-xl font-bold text-[#d12f27]">
+                    Subject Information
+                  </h2>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="text-4xl sm:text-5xl font-extrabold text-[#d12f27]">
-                    —
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full w-fit">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-xs font-semibold text-green-700">
+                      Ready for Grade Submission
+                    </span>
+                  </div>
+                </div>
+
+                {/* Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Academic Year */}
+                  <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-red-400 to-red-600 text-white p-5 min-h-[120px]">
+                    <div className="absolute top-0 right-0 text-6xl opacity-10">
+                      📅
+                    </div>
+
+                    <p className="text-sm opacity-90">Academic Year</p>
+                    <p className="text-2xl font-bold mt-2">
+                      {subjects?.[0]?.academicyear || "—"}
+                    </p>
                   </div>
 
-                  <div className="text-sm text-gray-600">
-                    <p className="font-medium">Current GPA</p>
-                    <p>Based on submitted grades</p>
+                  {/* Semester */}
+                  <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-400 to-blue-600 text-white p-5 min-h-[120px]">
+                    <div className="absolute top-0 right-0 text-6xl opacity-10">
+                      🎓
+                    </div>
+
+                    <p className="text-sm opacity-90">Semester</p>
+                    <p className="text-2xl font-bold mt-2">
+                      {subjects?.[0]?.semester || "—"}
+                    </p>
+                  </div>
+
+                  {/* Total Subjects */}
+                  <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-400 to-green-600 text-white p-5 min-h-[120px]">
+                    <div className="absolute top-0 right-0 text-6xl opacity-10">
+                      📚
+                    </div>
+
+                    <p className="text-sm opacity-90">Total Subjects</p>
+                    <p className="text-3xl font-bold mt-2">
+                      {subjects?.length || 0}
+                    </p>
+                  </div>
+
+                  {/* Total Units */}
+                  <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-orange-400 to-orange-600 text-white p-5 min-h-[120px]">
+                    <div className="absolute top-0 right-0 text-6xl opacity-10">
+                      🧮
+                    </div>
+
+                    <p className="text-sm opacity-90">Total Units</p>
+                    <p className="text-3xl font-bold mt-2">
+                      {subjects?.reduce(
+                        (total, subject) => total + Number(subject.units || 0),
+                        0,
+                      ) || 0}
+                    </p>
                   </div>
                 </div>
               </section>
 
-              {/* ================= 2. SUBJECT INFORMATION ================= */}
               <section className="bg-white border rounded-lg p-4 sm:p-6 mb-6">
-                <h2 className="text-lg font-semibold text-[#d12f27] mb-4">
-                  Subject Information
-                </h2>
+                <div className="flex justify-between items-center mb-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#d12f27]">
+                      Encoding Progress
+                    </h2>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="p-3 border rounded-md bg-gray-50">
-                    <p className="text-sm text-gray-500">Total Subjects</p>
-                    <p className="text-lg font-semibold">{subjects.length}</p>
-                  </div>
-
-                  <div className="p-3 border rounded-md bg-gray-50">
-                    <p className="text-sm text-gray-500">Selected Entries</p>
-                    <p className="text-lg font-semibold">
-                      {gradeEntries.length}
+                    <p className="text-sm text-gray-500">
+                      {encodedSubjects} of {totalSubjects} grades encoded
                     </p>
                   </div>
+
+                  <span className="text-xl font-bold text-[#d12f27]">
+                    {progressPercentage}%
+                  </span>
+                </div>
+
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="h-full bg-[#d12f27] transition-all duration-500"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
                 </div>
               </section>
 
@@ -261,33 +331,51 @@ const GradesSection = () => {
                       {subjects.map((subject) => (
                         <div
                           key={subject.enrollmentid}
-                          className="flex flex-col md:flex-row md:items-center justify-between border rounded-lg p-3 gap-3"
+                          className="border rounded-xl bg-white shadow-sm hover:shadow-md transition-all"
                         >
-                          <div>
-                            <p className="font-medium text-gray-800">
-                              {subject.subjectname}
-                            </p>
+                          <div className="p-3 md:p-4">
+                            <div className="flex items-center justify-between gap-3">
+                              {/* Subject Info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap gap-2 mb-1">
+                                  <span className="px-2 py-1 text-xs font-semibold bg-red-50 text-[#d12f27] border border-red-200 rounded">
+                                    {subject.subjectcode}
+                                  </span>
 
-                            <p className="text-sm text-gray-500">
-                              {subject.subjectcode} • {subject.units} Units
-                            </p>
+                                  <span className="px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded">
+                                    {subject.units} Units
+                                  </span>
+                                </div>
+
+                                <h3 className="font-semibold text-gray-900 text-sm md:text-lg leading-tight">
+                                  {subject.subjectname}
+                                </h3>
+                              </div>
+
+                              {/* Grade */}
+                              <div className="w-24 md:w-32 flex-shrink-0">
+                                <label className="block text-[11px] md:text-xs font-medium text-gray-500 text-center mb-1">
+                                  Final Grade
+                                </label>
+
+                                <input
+                                  type="number"
+                                  step="0.25"
+                                  min="1"
+                                  max="5"
+                                  value={grades[subject.enrollmentid] || ""}
+                                  onChange={(e) =>
+                                    setGrades((prev) => ({
+                                      ...prev,
+                                      [subject.enrollmentid]: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full border-2 border-gray-300 rounded-lg px-2 py-2 text-center font-bold text-lg focus:border-[#d12f27] focus:outline-none"
+                                  placeholder="1.00"
+                                />
+                              </div>
+                            </div>
                           </div>
-
-                          <input
-                            type="number"
-                            step="0.25"
-                            min="1"
-                            max="5"
-                            value={grades[subject.enrollmentid] || ""}
-                            onChange={(e) =>
-                              setGrades((prev) => ({
-                                ...prev,
-                                [subject.enrollmentid]: e.target.value,
-                              }))
-                            }
-                            className="w-full md:w-32 border rounded-md px-3 py-2 text-center"
-                            placeholder="1.00"
-                          />
                         </div>
                       ))}
                     </div>
@@ -295,25 +383,52 @@ const GradesSection = () => {
                 </div>
               </section>
 
-              {/* ================= 4. ACTIONS (SEPARATE SECTION) ================= */}
-              <section className="flex justify-between items-center">
-                <button
-                  onClick={handleAddRow}
-                  className="border px-4 py-2 rounded bg-gray-50 hover:bg-gray-100"
-                >
-                  + Add New Subject Row
-                </button>
+              <section className="bg-white border rounded-lg p-4 sm:p-6 mb-6">
+                <h2 className="text-lg font-semibold text-[#d12f27] mb-3">
+                  Upload Grade Supporting Document
+                </h2>
 
+                <p className="text-sm text-gray-500 mb-4">
+                  Upload signed grade sheet (PDF or image format).
+                </p>
+
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-gray-600 border border-gray-300 rounded-lg p-2 cursor-pointer"
+                />
+
+                {fileError && (
+                  <p className="text-red-500 text-sm mt-2">{fileError}</p>
+                )}
+
+                {file && (
+                  <p className="text-green-600 text-sm mt-2">
+                    Selected file: {file.name}
+                  </p>
+                )}
+              </section>
+
+              {/* ================= 4. ACTIONS (SEPARATE SECTION) ================= */}
+              <section className="flex justify-end">
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    const confirmed = window.confirm(
+                      "Are you sure you want to submit your grades? Once submitted, changes may require administrator approval.",
+                    );
+                    if (confirmed) {
+                      handleSubmit();
+                    }
+                  }}
                   disabled={subjects.length === 0}
-                  className={`px-6 py-2 rounded text-white ${
+                  className={`px-6 py-2 border rounded-xl text-white ${
                     subjects.length === 0
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-[#d12f27] hover:bg-[#b72821]"
                   }`}
                 >
-                  Submit Grades
+                  Submit Subjects for Evaluation
                 </button>
               </section>
             </>

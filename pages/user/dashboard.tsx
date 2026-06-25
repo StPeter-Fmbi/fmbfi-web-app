@@ -11,6 +11,16 @@ import { useStudent } from "@/hooks/useStudent";
 const StudentProfile = () => {
   const { student, schoolName, image, error, isLoading } = useStudent();
 
+  const InfoRow = ({ label, value }: { label: string; value: any }) => (
+    <div className="flex items-center justify-between py-3">
+      <span className="text-md text-gray-500">{label}</span>
+
+      <span className="text-md font-semibold text-gray-900">
+        {value || "—"}
+      </span>
+    </div>
+  );
+
   return (
     <>
       <Head>
@@ -19,13 +29,16 @@ const StudentProfile = () => {
 
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar />
-        
 
         {/* MAIN */}
         <div className="flex-1 w-full xl:ml-64 pt-20 md:pt-24 p-3 sm:p-4 md:p-6 font-body overflow-x-hidden">
           {/* HEADER (only when ready) */}
           {student && (
-            <StudentHeader student={student} schoolName={schoolName} image={image} />
+            <StudentHeader
+              student={student}
+              schoolName={schoolName}
+              image={image}
+            />
           )}
 
           {/* LOADING (NO BUG NOW) */}
@@ -39,7 +52,6 @@ const StudentProfile = () => {
               </div>
             </div>
           )}
-          
 
           {/* ERROR */}
           {error && <p className="text-red-500 p-4">{error}</p>}
@@ -47,111 +59,179 @@ const StudentProfile = () => {
           {/* CONTENT */}
           {!isLoading && student && (
             <>
-              {/* STATS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white border rounded-lg shadow p-4 text-center">
-                  <p className="text-gray-500 text-sm">Current GPA</p>
-                  <p className="text-2xl font-bold text-[#d12f27]">{"N/A"}</p>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-[#d12f27]">
+                  Scholar Overview
+                </h2>
 
-                <div className="bg-white border rounded-lg shadow p-4 text-center">
-                  <p className="text-gray-500 text-sm">Scholarship Status</p>
-                  <p
-                    className={`text-2xl font-bold ${
+                <div
+                  className={`flex items-center gap-2 px-3 py-1.5 border rounded-full ${
+                    student.status === "Active"
+                      ? "bg-green-50 border-green-200"
+                      : "bg-red-50 border-red-200"
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full animate-pulse ${
                       student.status === "Active"
-                        ? "text-green-600"
-                        : "text-[#d12f27]"
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  />
+
+                  <span
+                    className={`text-xs font-semibold ${
+                      student.status === "Active"
+                        ? "text-green-700"
+                        : "text-red-700"
                     }`}
                   >
-                    {student.status ?? "N/A"}
+                    {student.status || "Unknown Status"}
+                  </span>
+                </div>
+              </div>
+
+              {/* DASHBOARD STATS */}
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {/* GPA */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-400 to-red-600 text-white p-5 shadow-lg">
+                  <div className="absolute top-0 right-0 text-6xl opacity-10">
+                    🎓
+                  </div>
+
+                  <p className="text-sm opacity-90">Current GPA</p>
+                  <p className="text-4xl font-bold mt-2">N/A</p>
+                </div>
+
+                {/* Status */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white p-5 shadow-lg">
+                  <div className="absolute top-0 right-0 text-6xl opacity-10">
+                    ✅
+                  </div>
+
+                  <p className="text-sm opacity-90">Scholarship Status</p>
+
+                  <p className="text-3xl font-bold mt-2">
+                    {student.status || "N/A"}
+                  </p>
+                </div>
+
+                {/* Category */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white p-5 shadow-lg">
+                  <div className="absolute top-0 right-0 text-6xl opacity-10">
+                    📚
+                  </div>
+
+                  <p className="text-sm opacity-90">Category</p>
+
+                  <p className="text-3xl font-bold mt-2">
+                    {student.category || "N/A"}
+                  </p>
+                </div>
+
+                {/* Batch */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 text-white p-5 shadow-lg">
+                  <div className="absolute top-0 right-0 text-6xl opacity-10">
+                    🏆
+                  </div>
+
+                  <p className="text-sm opacity-90">Batch</p>
+
+                  <p className="text-4xl font-bold mt-2">
+                    {student.batch || "N/A"}
                   </p>
                 </div>
               </div>
 
-              {/* CARDS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {/* PERSONAL */}
-                <div className="bg-white border rounded-xl shadow-sm p-5 md:p-6 space-y-4">
-                  <h2 className="text-xl font-semibold text-[#d12f27]">
-                    Personal Information
-                  </h2>
+              {/* INFORMATION CARDS */}
+              <div className="grid lg:grid-cols-2 gap-6 mb-6">
+                {/* PERSONAL INFO */}
+                <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
+                    <h2 className="font-bold text-white text-lg">
+                      Personal Information
+                    </h2>
+                  </div>
 
-                  <div className="flex flex-col divide-y divide-gray-100">
-                    {[
-                      { label: "Scholar ID", value: student.scholardid },
-                      { label: "Course", value: student.course || "—" },
-                      { label: "Year Level", value: student.sy },
-                    ].map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex flex-col md:flex-row md:justify-between py-2"
-                      >
-                        <span className="text-gray-500 text-sm">
-                          {item.label}
-                        </span>
-                        <span className="text-gray-800 text-sm">
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="p-6 space-y-4">
+                    <InfoRow label="Scholar ID" value={student.scholardid} />
+                    <InfoRow
+                      label="Category"
+                      value={student.category || "N/A"}
+                    />
+                    <InfoRow label="Year Level" value={student.sy} />
                   </div>
                 </div>
 
-                {/* SCHOLARSHIP */}
-                <div className="bg-white border rounded-xl shadow-sm p-5 md:p-6 space-y-4">
-                  <h2 className="text-xl font-semibold text-[#d12f27]">
-                    Scholarship Information
-                  </h2>
+                {/* SCHOLARSHIP INFO */}
+                <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
+                    <h2 className="font-bold text-white text-lg">
+                      Scholarship Information
+                    </h2>
+                  </div>
 
-                  <div className="flex flex-col divide-y divide-gray-100">
-                    {[
-                      { label: "Batch No", value: student.batch },
-                      { label: "Academic Year", value: student.sy },
-                      // {
-                      //   label: "End of Scholarship",
-                      //   value: student.endofscholarshipdate
-                      //     ? new Date(
-                      //         student.endofscholarshipdate
-                      //       ).toLocaleDateString()
-                      //     : "—",
-                      // },
-                    ].map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex flex-col md:flex-row md:justify-between py-2"
-                      >
-                        <span className="text-gray-500 text-sm">
-                          {item.label}
-                        </span>
-                        <span className="text-gray-800 text-sm">
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="p-6 space-y-4">
+                    <InfoRow label="Batch Number" value={student.batch} />
+
+                    <InfoRow label="Academic Year" value={student.sy} />
+
+                    <InfoRow label="Status" value={student.status} />
                   </div>
                 </div>
               </div>
 
               {/* ANNOUNCEMENTS */}
-              <div className="bg-white border rounded-lg shadow p-4">
-                <h3 className="text-red-600 font-semibold mb-2">
-                  Announcements
-                </h3>
+              <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-red-500 to-red-600 px-4 sm:px-6 py-3 sm:py-4">
+                  <h2 className="text-white font-bold text-base sm:text-lg">
+                    Latest Announcements
+                  </h2>
+                </div>
 
-                <ul className="text-sm text-gray-700 space-y-1">
+                {/* Content */}
+                <div className="p-4 sm:p-6">
                   {student.announcements?.length ? (
-                    student.announcements.map((item, idx) => (
-                      <li key={idx}>
-                        <span className="font-medium">{item.title}</span> —{" "}
-                        {item.date
-                          ? new Date(item.date).toLocaleDateString()
-                          : ""}
-                      </li>
-                    ))
+                    <div className="space-y-3 sm:space-y-4">
+                      {student.announcements.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="group relative bg-gray-50 hover:bg-white border border-gray-100 hover:border-red-200 rounded-xl p-4 sm:p-5 transition-all duration-200 shadow-sm hover:shadow-md"
+                        >
+                          {/* Accent line */}
+                          <div className="absolute left-0 top-0 h-full w-1 bg-red-500 rounded-l-xl" />
+
+                          <div className="ml-2 sm:ml-3">
+                            {/* Title */}
+                            <p className="font-semibold text-gray-800 text-sm sm:text-base group-hover:text-[#d12f27] transition-colors">
+                              {item.title}
+                            </p>
+
+                            {/* Date */}
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                                {item.date
+                                  ? new Date(item.date).toLocaleDateString()
+                                  : "No date"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <li>No announcements yet.</li>
+                    <div className="text-center py-10">
+                      <div className="text-4xl mb-2">📢</div>
+                      <p className="text-gray-600 font-medium">
+                        No announcements available
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Check back later for updates
+                      </p>
+                    </div>
                   )}
-                </ul>
+                </div>
               </div>
             </>
           )}

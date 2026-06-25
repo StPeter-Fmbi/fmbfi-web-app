@@ -32,7 +32,7 @@ const Sidebar = () => {
 
   // Detect mobile/tablet screen size
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 1024);
+    const handleResize = () => setIsMobile(window.innerWidth < 1280);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -43,7 +43,7 @@ const Sidebar = () => {
     { name: "Dashboard", icon: FiHome, path: "/user/dashboard" },
     { name: "Encode Subjects", icon: FiEdit, path: "/user/subjects" },
     { name: "Grades", icon: FiFileText, path: "/user/grades" },
-    { name: "Evaluation", icon: FiFileText, path: "/user/evaluation" },
+    { name: "Evaluation", icon: FiInfo, path: "/user/evaluation" },
   ];
 
   // Logo component for reuse

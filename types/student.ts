@@ -13,5 +13,6 @@ export type Student = {
   year_start: string;
   //endofscholarshipdate?: string | null;
   status?: string | null;
+  category?: string | null;
   announcements?: { title: string; date?: string }[];
 };

@@ -2,6 +2,7 @@ import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
 import StudentHeader from "@/components/StudentHeader";
 import { useStudent } from "@/hooks/useStudent";
+import { useState } from "react";
 
 const EvaluationPage = () => {
   const subjects = [
@@ -43,6 +44,15 @@ const EvaluationPage = () => {
     },
   ];
 
+  const [selectedYear, setSelectedYear] = useState("2024-2025");
+  const [selectedSemester, setSelectedSemester] = useState("1st Semester");
+
+  const approvedSubjects = subjects.filter(
+    (s) => s.status === "Approved",
+  ).length;
+
+  const pendingSubjects = subjects.filter((s) => s.status === "Pending").length;
+
   const totalUnits = subjects.reduce((sum, s) => sum + s.units, 0);
   const { student, schoolName, image, error, isLoading } = useStudent();
 
@@ -62,96 +72,118 @@ const EvaluationPage = () => {
           )}
 
           {/* SUMMARY */}
-          <section className="bg-white rounded-lg border shadow-sm p-4 mb-4">
-            <h2 className="font-semibold text-lg mb-3">
-              Current Subjects & Evaluation Summary
-            </h2>
+          {/* Subject Evaluation Summary */}
+          <section className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold text-[#d12f27]">
+                Evaluation Summary
+              </h2>
 
-            <div className="grid md:grid-cols-4 gap-3">
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">
-                  Academic Year
-                </label>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-full">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
 
-                <select className="w-full border rounded-md px-3 py-2">
-                  <option>2024-2025</option>
-                  <option>2025-2026</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">
-                  Semester
-                </label>
-
-                <select className="w-full border rounded-md px-3 py-2">
-                  <option>1st Semester</option>
-                  <option>2nd Semester</option>
-                </select>
-              </div>
-
-              <div className="border rounded-md px-4 py-2 flex items-center">
-                <div>
-                  <div className="text-sm text-gray-500">Total Units</div>
-                  <div className="font-bold text-xl">{totalUnits}</div>
-                </div>
-              </div>
-
-              <div className="border rounded-md px-4 py-2 flex items-center justify-between">
-                <span className="text-sm">Evaluation Status</span>
-
-                <span className="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 font-medium">
-                  Pending
+                <span className="text-xs font-semibold text-yellow-700">
+                  Evaluation In Progress
                 </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Academic Year */}
+              <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-red-400 to-red-600 text-white p-5">
+                <div className="absolute top-0 right-0 text-6xl opacity-10">
+                  📅
+                </div>
+
+                <p className="text-sm opacity-90">Academic Year</p>
+
+                <p className="text-2xl font-bold mt-2">2024-2025</p>
+              </div>
+
+              {/* Semester */}
+              <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-400 to-blue-600 text-white p-5">
+                <div className="absolute top-0 right-0 text-6xl opacity-10">
+                  🎓
+                </div>
+
+                <p className="text-sm opacity-90">Semester</p>
+
+                <p className="text-2xl font-bold mt-2">1st Sem</p>
+              </div>
+
+              {/* Total Subjects */}
+              <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-400 to-green-600 text-white p-5">
+                <div className="absolute top-0 right-0 text-6xl opacity-10">
+                  📚
+                </div>
+
+                <p className="text-sm opacity-90">Total Subjects</p>
+
+                <p className="text-4xl font-bold mt-2">{subjects.length}</p>
+              </div>
+
+              {/* Total Units */}
+              <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-orange-400 to-orange-600 text-white p-5">
+                <div className="absolute top-0 right-0 text-6xl opacity-10">
+                  📝
+                </div>
+
+                <p className="text-sm opacity-90">Total Units</p>
+
+                <p className="text-4xl font-bold mt-2">{totalUnits}</p>
               </div>
             </div>
           </section>
 
           {/* SUBJECT LIST */}
-          <section className="bg-white rounded-lg border shadow-sm p-4 mb-4">
-            <h2 className="font-semibold text-lg mb-3">
-              List of Current Subjects (AY 2024-2025, 1st Sem)
-            </h2>
+          <section className="bg-white rounded-2xl border shadow-sm p-5 mb-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-bold text-[#d12f27]">
+                  Submitted Subjects
+                </h2>
 
-            <div className="overflow-x-auto">
-              <table className="w-full border text-sm">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border px-3 py-2 text-left">Subject Code</th>
-                    <th className="border px-3 py-2 text-left">
-                      Subject Title
-                    </th>
-                    <th className="border px-3 py-2 text-center">Units</th>
-                    <th className="border px-3 py-2 text-center">Status</th>
-                  </tr>
-                </thead>
+                <p className="text-sm text-gray-500">
+                  AY {selectedYear} • {selectedSemester}
+                </p>
+              </div>
 
-                <tbody>
-                  {subjects.map((subject, index) => (
-                    <tr key={index}>
-                      <td className="border px-3 py-2">{subject.code}</td>
+              <span className="px-4 py-2 rounded-xl bg-red-50 border text-[#d12f27] font-semibold">
+                {subjects.length} Subjects
+              </span>
+            </div>
 
-                      <td className="border px-3 py-2">{subject.title}</td>
+            <div className="space-y-3">
+              {subjects.map((subject, index) => (
+                <div
+                  key={index}
+                  className="border rounded-xl p-4 hover:shadow-md transition-all"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                      <p className="font-bold text-[#d12f27]">{subject.code}</p>
 
-                      <td className="border px-3 py-2 text-center">
-                        {subject.units}
-                      </td>
+                      <h3 className="font-semibold text-gray-900">
+                        {subject.title}
+                      </h3>
 
-                      <td className="border px-3 py-2 text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            subject.status === "Approved"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {subject.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      <p className="text-sm text-gray-500">
+                        {subject.units} Units
+                      </p>
+                    </div>
+
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        subject.status === "Approved"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {subject.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
 

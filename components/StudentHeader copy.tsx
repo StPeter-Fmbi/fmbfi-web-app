@@ -31,6 +31,8 @@ const StudentHeader = ({ student, image, schoolName }: StudentHeaderProps) => {
         )}
       </div>
 
+      
+
       {/* Name */}
       <h1 className="mt-4 text-3xl font-bold text-[#d12f27]">
         {student.first_name?.toUpperCase()} {student.middle_name?.toUpperCase()} {student.last_name?.toUpperCase()}
