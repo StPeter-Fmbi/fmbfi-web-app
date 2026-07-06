@@ -44,6 +44,7 @@ const Sidebar = () => {
     { name: "Encode Subjects", icon: FiEdit, path: "/user/subjects" },
     { name: "Grades", icon: FiFileText, path: "/user/grades" },
     { name: "Evaluation", icon: FiInfo, path: "/user/evaluation" },
+    { name: "Admin", icon: FiInfo, path: "/admin/evaluation" },
   ];
 
   // Logo component for reuse

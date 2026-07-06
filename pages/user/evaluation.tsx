@@ -2,7 +2,13 @@ import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
 import StudentHeader from "@/components/StudentHeader";
 import { useStudent } from "@/hooks/useStudent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  IEvaluation,
+  IGetEvaluationResponse,
+} from "../api/evaluation/getAllEvaluationByStudentID";
+import { useSession } from "next-auth/react";
+import { Student } from "@/types/student";
 
 const EvaluationPage = () => {
   const subjects = [
@@ -44,17 +50,44 @@ const EvaluationPage = () => {
     },
   ];
 
+  const [evaluations, setEvaluations] = useState<IEvaluation[]>([]);
   const [selectedYear, setSelectedYear] = useState("2024-2025");
   const [selectedSemester, setSelectedSemester] = useState("1st Semester");
-
-  const approvedSubjects = subjects.filter(
-    (s) => s.status === "Approved",
-  ).length;
-
-  const pendingSubjects = subjects.filter((s) => s.status === "Pending").length;
-
   const totalUnits = subjects.reduce((sum, s) => sum + s.units, 0);
   const { student, schoolName, image, error, isLoading } = useStudent();
+
+  // const approvedSubjects = subjects.filter(
+  //   (s) => s.status === "Approved",
+  // ).length;
+
+  // const pendingSubjects = subjects.filter((s) => s.status === "Pending").length;
+
+  //fetch evaluations from the API by scholarId
+  const fetchEvaluations = async (scholarId: string) => {
+    try {
+      console.log("Fetching evaluations for scholarId:", scholarId);
+
+      const res = await fetch(
+        `/api/evaluation/getAllEvaluationByStudentID?scholarid=${encodeURIComponent(scholarId)}`,
+      );
+
+      const data: IGetEvaluationResponse = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to load evaluations.");
+      }
+
+      setEvaluations(data.data ?? []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (student) {
+      fetchEvaluations(student.scholardid);
+    }
+  }, [student]);
 
   return (
     <>
@@ -154,17 +187,19 @@ const EvaluationPage = () => {
             </div>
 
             <div className="space-y-3">
-              {subjects.map((subject, index) => (
+              {evaluations.map((subject, index) => (
                 <div
                   key={index}
                   className="border rounded-xl p-4 hover:shadow-md transition-all"
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                      <p className="font-bold text-[#d12f27]">{subject.code}</p>
+                      <p className="font-bold text-[#d12f27]">
+                        {subject.subjectcode}
+                      </p>
 
                       <h3 className="font-semibold text-gray-900">
-                        {subject.title}
+                        {subject.subjectname}
                       </h3>
 
                       <p className="text-sm text-gray-500">
@@ -174,12 +209,13 @@ const EvaluationPage = () => {
 
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        subject.status === "Approved"
+                        // subject.isactive === "Approved"
+                        subject.isactive === 1
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
                       }`}
                     >
-                      {subject.status}
+                      {subject.isactive === 1 ? "Approved" : "Pending"}
                     </span>
                   </div>
                 </div>

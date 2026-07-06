@@ -1,6 +1,6 @@
 // types/student.ts
 export type Student = {
-  scholardid: number;
+  scholardid: string;
   last_name: string;
   first_name: string;
   middle_name?: string | null;
